@@ -46,12 +46,14 @@ export default function RenovationSection() {
     e.preventDefault()
     setError('')
     setSending(true)
+    const eventId = crypto.randomUUID()
     try {
       const res = await fetch(`${API_URL}/api/leads/renovation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          eventId,
           descripcion:
             files.length > 0
               ? `${form.descripcion}\n\n(${files.length} foto${files.length > 1 ? 's' : ''} adjuntada${files.length > 1 ? 's' : ''} en el formulario, envío de archivos pendiente de implementar)`
@@ -59,7 +61,7 @@ export default function RenovationSection() {
         }),
       })
       if (!res.ok) throw new Error('request failed')
-      window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo })
+      window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo }, { eventID: eventId })
       setSent(true)
     } catch {
       setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')

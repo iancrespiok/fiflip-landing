@@ -39,14 +39,15 @@ export default function InvestSection() {
     e.preventDefault()
     setError('')
     setSending(true)
+    const eventId = crypto.randomUUID()
     try {
       const res = await fetch(`${API_URL}/api/leads/investor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, eventId }),
       })
       if (!res.ok) throw new Error('request failed')
-      window.fbq?.('track', 'Lead', { content_name: 'inversion' })
+      window.fbq?.('track', 'Lead', { content_name: 'inversion' }, { eventID: eventId })
       setSent(true)
     } catch {
       setError('No pudimos enviar tu consulta. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
