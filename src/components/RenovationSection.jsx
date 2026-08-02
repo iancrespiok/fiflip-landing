@@ -59,6 +59,7 @@ export default function RenovationSection() {
         }),
       })
       if (!res.ok) throw new Error('request failed')
+      window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo })
       setSent(true)
     } catch {
       setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')

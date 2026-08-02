@@ -46,6 +46,7 @@ export default function InvestSection() {
         body: JSON.stringify(form),
       })
       if (!res.ok) throw new Error('request failed')
+      window.fbq?.('track', 'Lead', { content_name: 'inversion' })
       setSent(true)
     } catch {
       setError('No pudimos enviar tu consulta. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
