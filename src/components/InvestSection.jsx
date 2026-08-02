@@ -25,16 +25,33 @@ const PROJECTS = [
 ]
 
 const initialForm = { nombre: '', contacto: '', monto: '', mensaje: '' }
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function InvestSection() {
   const [form, setForm] = useState(initialForm)
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+    setError('')
+    setSending(true)
+    try {
+      const res = await fetch(`${API_URL}/api/leads/investor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('request failed')
+      setSent(true)
+    } catch {
+      setError('No pudimos enviar tu consulta. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -115,8 +132,9 @@ export default function InvestSection() {
                   placeholder="Contanos qué tipo de proyecto te interesa"
                 />
               </div>
-              <button type="submit" className="btn btn-white" style={{ marginTop: 8 }}>
-                Quiero que me contacten →
+              {error && <p style={{ color: '#ff8a7a', fontSize: '0.85rem' }}>{error}</p>}
+              <button type="submit" className="btn btn-white" style={{ marginTop: 8 }} disabled={sending}>
+                {sending ? 'Enviando…' : 'Quiero que me contacten →'}
               </button>
             </form>
           )}

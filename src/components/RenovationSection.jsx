@@ -27,10 +27,14 @@ const initialForm = {
   descripcion: '',
 }
 
+const API_URL = import.meta.env.VITE_API_URL
+
 export default function RenovationSection() {
   const [form, setForm] = useState(initialForm)
   const [files, setFiles] = useState([])
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -38,9 +42,29 @@ export default function RenovationSection() {
     setFiles(Array.from(e.target.files || []))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+    setError('')
+    setSending(true)
+    try {
+      const res = await fetch(`${API_URL}/api/leads/renovation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          descripcion:
+            files.length > 0
+              ? `${form.descripcion}\n\n(${files.length} foto${files.length > 1 ? 's' : ''} adjuntada${files.length > 1 ? 's' : ''} en el formulario, envío de archivos pendiente de implementar)`
+              : form.descripcion,
+        }),
+      })
+      if (!res.ok) throw new Error('request failed')
+      setSent(true)
+    } catch {
+      setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -144,8 +168,9 @@ export default function RenovationSection() {
                     </span>
                   )}
                 </div>
-                <button type="submit" className="btn" style={{ marginTop: 8 }}>
-                  Pedir presupuesto →
+                {error && <p style={{ color: '#c0392b', fontSize: '0.85rem' }}>{error}</p>}
+                <button type="submit" className="btn" style={{ marginTop: 8 }} disabled={sending}>
+                  {sending ? 'Enviando…' : 'Pedir presupuesto →'}
                 </button>
               </form>
             )}
