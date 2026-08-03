@@ -14,7 +14,7 @@ const USE_CASES = [
   {
     n: '03',
     title: 'Refaccionar mi espacio',
-    text: 'Renovamos el espacio puntual que necesitás renovar, sin obra completa.',
+    text: 'Refaccionamos y/o remodelamos el espacio puntual que necesitás cambiar, sin preocupaciones; hacemos trabajos llave en mano.',
   },
 ]
 
