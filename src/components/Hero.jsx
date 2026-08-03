@@ -66,6 +66,7 @@ export default function Hero() {
         .hero-tile {
           padding: 40px 24px 46px;
           border-right: 2px solid var(--white);
+          min-width: 0;
         }
         .hero-tile-alt { border-right: none; }
         .hero-tile-num {

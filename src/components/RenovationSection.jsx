@@ -202,6 +202,7 @@ export default function RenovationSection() {
           display: flex;
           flex-direction: column;
           gap: 34px;
+          min-width: 0;
         }
         .reno-case {
           padding-top: 22px;
@@ -226,6 +227,7 @@ export default function RenovationSection() {
           background: var(--gray-100);
           border: 2px solid var(--black);
           padding: 36px;
+          min-width: 0;
         }
         .reno-form {
           display: flex;

@@ -157,6 +157,7 @@ export default function InvestSection() {
         .invest-card {
           background: var(--black);
           padding: 28px;
+          min-width: 0;
         }
         .invest-card-top {
           display: flex;
