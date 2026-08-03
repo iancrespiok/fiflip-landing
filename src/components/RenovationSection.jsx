@@ -29,6 +29,12 @@ const initialForm = {
 
 const API_URL = import.meta.env.VITE_API_URL
 
+const CUSTOM_EVENT_BY_TIPO = {
+  'Vender más caro': 'LeadVenderMasCaro',
+  'Lista para mudarte': 'LeadListoParaMudarte',
+  'Cocina o baño': 'LeadCocinaBano',
+}
+
 export default function RenovationSection() {
   const [form, setForm] = useState(initialForm)
   const [files, setFiles] = useState([])
@@ -47,6 +53,7 @@ export default function RenovationSection() {
     setError('')
     setSending(true)
     const eventId = crypto.randomUUID()
+    const customEventId = crypto.randomUUID()
     try {
       const res = await fetch(`${API_URL}/api/leads/renovation`, {
         method: 'POST',
@@ -54,6 +61,7 @@ export default function RenovationSection() {
         body: JSON.stringify({
           ...form,
           eventId,
+          customEventId,
           descripcion:
             files.length > 0
               ? `${form.descripcion}\n\n(${files.length} foto${files.length > 1 ? 's' : ''} adjuntada${files.length > 1 ? 's' : ''} en el formulario, envío de archivos pendiente de implementar)`
@@ -62,6 +70,8 @@ export default function RenovationSection() {
       })
       if (!res.ok) throw new Error('request failed')
       window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo }, { eventID: eventId })
+      const customEventName = CUSTOM_EVENT_BY_TIPO[form.tipo] || 'LeadRenovacionOtro'
+      window.fbq?.('trackCustom', customEventName, { content_category: form.tipo }, { eventID: customEventId })
       setSent(true)
     } catch {
       setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
