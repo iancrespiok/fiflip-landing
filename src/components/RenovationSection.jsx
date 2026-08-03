@@ -9,7 +9,7 @@ const USE_CASES = [
   {
     n: '02',
     title: 'Lista para mudarte',
-    text: 'Compraste una propiedad y querés dejarla a tu gusto antes de instalarte.',
+    text: 'Compraste una propiedad y querés dejarla a tu gusto antes de mudarte.',
   },
   {
     n: '03',
