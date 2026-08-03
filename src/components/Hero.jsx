@@ -24,9 +24,9 @@ export default function Hero() {
           Le damos <span style={{ WebkitTextStroke: '2px var(--white)', color: 'var(--black)' }}>vuelta</span> a tu propiedad.
         </h1>
         <p style={{ maxWidth: 560, fontSize: '1.15rem', color: '#c9c9c9', marginTop: 26, lineHeight: 1.5 }}>
-          Renovamos tu casa para venderla más cara, dejarla lista para mudarte o
-          transformar tu cocina y baño — o invertí con nosotros en proyectos de
-          flipping inmobiliario con retornos reales.
+          Renovamos tu propiedad para venderla más cara, dejarla lista para mudarte
+          o para transformar un espacio de tu hogar — o invertí con nosotros en
+          proyectos de flipping inmobiliario con retornos reales.
         </p>
 
         <div style={{ display: 'flex', gap: 16, marginTop: 40, flexWrap: 'wrap' }}>
