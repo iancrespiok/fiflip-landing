@@ -33,7 +33,7 @@ export default function Footer() {
             <a href="#top" style={{ textDecoration: 'none' }}>
               Inicio
             </a>
-            <a href="#proyectos" style={{ textDecoration: 'none' }}>
+            <a href="#portfolio" style={{ textDecoration: 'none' }}>
               Proyectos
             </a>
           </div>

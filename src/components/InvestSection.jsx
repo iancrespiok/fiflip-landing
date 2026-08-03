@@ -1,37 +1,27 @@
-import { useState } from 'react'
-
-const PROJECTS = [
-  {
-    code: 'FL-01',
-    name: 'Casa Belgrano',
-    status: 'En obra',
-    detail: 'Compra + reforma integral de PH, venta proyectada Q1.',
-    roi: '+22% ROI est.',
-  },
-  {
-    code: 'FL-02',
-    name: 'Depto Palermo Soho',
-    status: 'Buscando inversores',
-    detail: 'Unidad 2 amb. a reciclar para renta corta o venta.',
-    roi: '+18% ROI est.',
-  },
-  {
-    code: 'FL-03',
-    name: 'Casa Nordelta',
-    status: 'Vendido',
-    detail: 'Flip completado, entrega a inversores realizada.',
-    roi: '+27% ROI final',
-  },
-]
+import { useEffect, useState } from 'react'
 
 const initialForm = { nombre: '', contacto: '', monto: '', mensaje: '' }
 const API_URL = import.meta.env.VITE_API_URL
+
+const STATUS_LABEL = {
+  EN_OBRA: 'En obra',
+  TERMINADO: 'Terminado',
+  BUSCANDO_INVERSORES: 'Buscando inversores',
+}
 
 export default function InvestSection() {
   const [form, setForm] = useState(initialForm)
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const [projects, setProjects] = useState([])
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/projects`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((all) => setProjects(all.filter((p) => p.category === 'FLIP').slice(0, 3)))
+      .catch(() => setProjects([]))
+  }, [])
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -72,19 +62,24 @@ export default function InvestSection() {
           proyectos concretos con retorno proyectado y seguimiento de obra.
         </p>
 
-        <div id="proyectos" className="invest-projects">
-          {PROJECTS.map((p) => (
-            <div className="invest-card" key={p.code}>
-              <div className="invest-card-top">
-                <span>{p.code}</span>
-                <span className="invest-status">{p.status}</span>
+        {projects.length > 0 && (
+          <div id="oportunidades" className="invest-projects">
+            {projects.map((p) => (
+              <div className="invest-card" key={p.id}>
+                <div className="invest-card-top">
+                  <span>{STATUS_LABEL[p.status] || 'Fiflip'}</span>
+                </div>
+                <h3>{p.title}</h3>
+                <p>{p.description}</p>
+                {p.tea != null && (
+                  <span className="invest-roi">
+                    +{p.tea}% TEA {p.teaProjected ? 'est.' : 'real'}
+                  </span>
+                )}
               </div>
-              <h3>{p.name}</h3>
-              <p>{p.detail}</p>
-              <span className="invest-roi">{p.roi}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="invest-form-wrap">
           {sent ? (

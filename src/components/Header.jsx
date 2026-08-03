@@ -14,7 +14,7 @@ export default function Header() {
   const links = [
     { href: '#renovacion', label: 'Renovación' },
     { href: '#inversion', label: 'Inversión' },
-    { href: '#proyectos', label: 'Proyectos' },
+    { href: '#portfolio', label: 'Proyectos' },
     { href: '#contacto', label: 'Contacto' },
   ]
 

@@ -13,7 +13,7 @@ const USE_CASES = [
   },
   {
     n: '03',
-    title: 'Cocina o baño',
+    title: 'Refaccionar mi espacio',
     text: 'Renovamos el espacio puntual que necesitás renovar, sin obra completa.',
   },
 ]
@@ -32,7 +32,7 @@ const API_URL = import.meta.env.VITE_API_URL
 const CUSTOM_EVENT_BY_TIPO = {
   'Vender más caro': 'LeadVenderMasCaro',
   'Lista para mudarte': 'LeadListoParaMudarte',
-  'Cocina o baño': 'LeadCocinaBano',
+  'Refaccionar mi espacio': 'LeadRefaccion',
 }
 
 export default function RenovationSection() {
@@ -145,7 +145,7 @@ export default function RenovationSection() {
                   <select id="tipo" value={form.tipo} onChange={update('tipo')}>
                     <option>Vender más caro</option>
                     <option>Lista para mudarte</option>
-                    <option>Cocina o baño</option>
+                    <option>Refaccionar mi espacio</option>
                     <option>Otro</option>
                   </select>
                 </div>
