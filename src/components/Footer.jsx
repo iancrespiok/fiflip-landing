@@ -15,8 +15,24 @@ export default function Footer() {
         <div>
           <h4 style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>Contacto</h4>
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8, color: 'var(--gray-700)' }}>
-            <a href="mailto:hola@fiflip.realestate" style={{ textDecoration: 'none' }}>
-              hola@fiflip.realestate
+            <a href="mailto:fiflip.ba@gmail.com" style={{ textDecoration: 'none' }}>
+              fiflip.ba@gmail.com
+            </a>
+            <a
+              href="https://wa.me/5491154911333"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              WhatsApp: +54 9 11 5491-1333
+            </a>
+            <a
+              href="https://instagram.com/fiflip.realestate"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              Instagram: @fiflip.realestate
             </a>
             <a href="#renovacion" style={{ textDecoration: 'none' }}>
               Pedir presupuesto de renovación
