@@ -37,7 +37,7 @@ export default function ProjectDetailPage({ id }) {
 
   return (
     <div>
-      <header style={{ borderBottom: '2px solid var(--black)' }}>
+      <header style={{ background: 'var(--black)' }}>
         <div className="wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 78 }}>
           <a
             href="/"
@@ -47,10 +47,11 @@ export default function ProjectDetailPage({ id }) {
             }}
             style={{ textDecoration: 'none' }}
           >
-            <Logo />
+            <Logo variant="light" />
           </a>
           <button
-            className="btn btn-outline"
+            className="btn"
+            style={{ background: 'transparent', border: '2px solid var(--white)', color: 'var(--white)' }}
             onClick={() => (window.history.length > 1 ? window.history.back() : navigate('/'))}
           >
             ← Volver
