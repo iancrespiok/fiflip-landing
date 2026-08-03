@@ -145,26 +145,25 @@ function ProjectModal({ project, onClose }) {
         <h3>{project.title}</h3>
         <p className="portfolio-modal-desc">{project.description}</p>
 
-        {project.beforeImageUrls?.length > 0 && (
-          <>
-            <p className="portfolio-modal-label">Antes</p>
-            <div className="portfolio-modal-row">
-              {project.beforeImageUrls.map((url) => (
-                <img key={url} src={url} alt="Antes" />
-              ))}
+        {(project.beforeImageUrls?.length > 0 || project.afterImageUrls?.length > 0) && (
+          <div className="portfolio-modal-columns">
+            <div className="portfolio-modal-col">
+              <p className="portfolio-modal-label">Antes</p>
+              <div className="portfolio-modal-stack">
+                {project.beforeImageUrls?.map((url) => (
+                  <img key={url} src={url} alt="Antes" />
+                ))}
+              </div>
             </div>
-          </>
-        )}
-
-        {project.afterImageUrls?.length > 0 && (
-          <>
-            <p className="portfolio-modal-label">Después</p>
-            <div className="portfolio-modal-row">
-              {project.afterImageUrls.map((url) => (
-                <img key={url} src={url} alt="Después" />
-              ))}
+            <div className="portfolio-modal-col portfolio-modal-col-after">
+              <p className="portfolio-modal-label">Después</p>
+              <div className="portfolio-modal-stack">
+                {project.afterImageUrls?.map((url) => (
+                  <img key={url} src={url} alt="Después" />
+                ))}
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -183,7 +182,7 @@ function ProjectModal({ project, onClose }) {
         .portfolio-modal {
           background: var(--white);
           border: 2px solid var(--black);
-          max-width: 800px;
+          max-width: 920px;
           width: 100%;
           padding: 36px;
           position: relative;
@@ -207,24 +206,49 @@ function ProjectModal({ project, onClose }) {
           color: var(--gray-700);
           line-height: 1.55;
         }
+        .portfolio-modal-columns {
+          margin-top: 32px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0;
+          border-top: 2px solid var(--black);
+        }
+        .portfolio-modal-col {
+          padding: 20px 20px 0 0;
+          min-width: 0;
+        }
+        .portfolio-modal-col-after {
+          padding-left: 20px;
+          padding-right: 0;
+          border-left: 2px solid var(--black);
+        }
         .portfolio-modal-label {
-          margin-top: 28px;
+          margin-top: 16px;
           font-size: 0.75rem;
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.08em;
         }
-        .portfolio-modal-row {
+        .portfolio-modal-stack {
           margin-top: 12px;
           display: flex;
+          flex-direction: column;
           gap: 10px;
-          overflow-x: auto;
         }
-        .portfolio-modal-row img {
-          height: 160px;
-          width: auto;
-          flex-shrink: 0;
+        .portfolio-modal-stack img {
+          width: 100%;
+          height: auto;
           border: 2px solid var(--black);
+        }
+        @media (max-width: 620px) {
+          .portfolio-modal-columns { grid-template-columns: 1fr; }
+          .portfolio-modal-col-after {
+            border-left: none;
+            border-top: 2px solid var(--black);
+            padding-left: 0;
+            margin-top: 20px;
+            padding-top: 20px;
+          }
         }
       `}</style>
     </div>
