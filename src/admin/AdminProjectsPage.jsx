@@ -231,7 +231,12 @@ export default function AdminProjectsPage({ token, onLogout }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
             <div className="field">
               <label>Portada</label>
-              <input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files[0] || null)} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setCoverFile(e.target.files[0] || null)}
+              />
+              {coverFile && <FileNames files={[coverFile]} />}
               {coverImageUrl && !coverFile && <ImgPreview url={coverImageUrl} />}
             </div>
             <div className="field">
@@ -242,6 +247,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 multiple
                 onChange={(e) => setBeforeFiles(Array.from(e.target.files))}
               />
+              {beforeFiles.length > 0 && <FileNames files={beforeFiles} />}
               <ImgList urls={beforeImageUrls} onRemove={(url) => setBeforeImageUrls((arr) => arr.filter((u) => u !== url))} />
             </div>
             <div className="field">
@@ -252,6 +258,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 multiple
                 onChange={(e) => setAfterFiles(Array.from(e.target.files))}
               />
+              {afterFiles.length > 0 && <FileNames files={afterFiles} />}
               <ImgList urls={afterImageUrls} onRemove={(url) => setAfterImageUrls((arr) => arr.filter((u) => u !== url))} />
             </div>
           </div>
@@ -301,6 +308,14 @@ export default function AdminProjectsPage({ token, onLogout }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function FileNames({ files }) {
+  return (
+    <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-700)' }}>
+      {files.map((f) => f.name).join(', ')}
+    </p>
   )
 }
 
