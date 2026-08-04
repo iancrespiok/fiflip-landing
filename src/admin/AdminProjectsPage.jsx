@@ -1,4 +1,18 @@
 import { useEffect, useState } from 'react'
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -12,12 +26,6 @@ const emptyForm = {
   tea: '',
   teaProjected: true,
   projectDate: currentMonth,
-}
-
-function swap(arr, i, j) {
-  const copy = [...arr]
-  ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  return copy
 }
 
 export default function AdminProjectsPage({ token, onLogout }) {
@@ -264,15 +272,18 @@ export default function AdminProjectsPage({ token, onLogout }) {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
-            <div className="field">
-              <label>Portada</label>
-              <input type="file" accept="image/*" onChange={handleCoverSelect} disabled={uploadingCover} />
-              {uploadingCover && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
-              {coverImageUrl && !uploadingCover && <ImgPreview url={coverImageUrl} />}
-            </div>
-            <div className="field">
-              <label>Fotos "antes"</label>
+          <div className="field" style={{ marginTop: 16, maxWidth: 260 }}>
+            <label>Portada</label>
+            <input type="file" accept="image/*" onChange={handleCoverSelect} disabled={uploadingCover} />
+            {uploadingCover && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+            {coverImageUrl && !uploadingCover && <ImgPreview url={coverImageUrl} />}
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Fotos "antes"
+            </label>
+            <div style={{ marginTop: 8 }}>
               <input
                 type="file"
                 accept="image/*"
@@ -280,15 +291,20 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 onChange={(e) => handleMultiSelect(e, setBeforeImageUrls, setUploadingBefore)}
                 disabled={uploadingBefore}
               />
-              {uploadingBefore && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
-              <ImgList
-                urls={beforeImageUrls}
-                onRemove={(url) => setBeforeImageUrls((arr) => arr.filter((u) => u !== url))}
-                onMove={(i, j) => setBeforeImageUrls((arr) => swap(arr, i, j))}
-              />
             </div>
-            <div className="field">
-              <label>Fotos "después"</label>
+            {uploadingBefore && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+            <PhotoCarousel
+              urls={beforeImageUrls}
+              onRemove={(url) => setBeforeImageUrls((arr) => arr.filter((u) => u !== url))}
+              onReorder={setBeforeImageUrls}
+            />
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Fotos "después"
+            </label>
+            <div style={{ marginTop: 8 }}>
               <input
                 type="file"
                 accept="image/*"
@@ -296,18 +312,18 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 onChange={(e) => handleMultiSelect(e, setAfterImageUrls, setUploadingAfter)}
                 disabled={uploadingAfter}
               />
-              {uploadingAfter && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
-              <ImgList
-                urls={afterImageUrls}
-                onRemove={(url) => setAfterImageUrls((arr) => arr.filter((u) => u !== url))}
-                onMove={(i, j) => setAfterImageUrls((arr) => swap(arr, i, j))}
-              />
             </div>
+            {uploadingAfter && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+            <PhotoCarousel
+              urls={afterImageUrls}
+              onRemove={(url) => setAfterImageUrls((arr) => arr.filter((u) => u !== url))}
+              onReorder={setAfterImageUrls}
+            />
           </div>
 
           {error && <p style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: 16 }}>{error}</p>}
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button type="submit" className="btn" disabled={saving || uploadingCover || uploadingBefore || uploadingAfter}>
               {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear proyecto'}
             </button>
@@ -354,108 +370,91 @@ export default function AdminProjectsPage({ token, onLogout }) {
 }
 
 function ImgPreview({ url }) {
-  return <img src={url} alt="" style={{ marginTop: 8, height: 60, border: '2px solid var(--black)' }} />
+  return <img src={url} alt="" style={{ marginTop: 8, height: 100, width: '100%', objectFit: 'cover', border: '2px solid var(--black)' }} />
 }
 
-function ImgList({ urls, onRemove, onMove }) {
-  const [dragIndex, setDragIndex] = useState(null)
-  const [overIndex, setOverIndex] = useState(null)
+function PhotoCarousel({ urls, onRemove, onReorder }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+  )
 
   if (!urls?.length) return null
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = urls.indexOf(active.id)
+    const newIndex = urls.indexOf(over.id)
+    onReorder(arrayMove(urls, oldIndex, newIndex))
+  }
+
   return (
-    <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-      {urls.map((url, i) => (
-        <div
-          key={url}
-          draggable
-          onDragStart={() => setDragIndex(i)}
-          onDragOver={(e) => {
-            e.preventDefault()
-            if (overIndex !== i) setOverIndex(i)
-          }}
-          onDragLeave={() => setOverIndex((cur) => (cur === i ? null : cur))}
-          onDrop={(e) => {
-            e.preventDefault()
-            if (dragIndex !== null && dragIndex !== i) onMove(dragIndex, i)
-            setDragIndex(null)
-            setOverIndex(null)
-          }}
-          onDragEnd={() => {
-            setDragIndex(null)
-            setOverIndex(null)
-          }}
-          style={{
-            position: 'relative',
-            cursor: 'grab',
-            opacity: dragIndex === i ? 0.4 : 1,
-            outline: overIndex === i && dragIndex !== i ? '2px dashed var(--black)' : 'none',
-            outlineOffset: 2,
-          }}
-        >
-          <img
-            src={url}
-            alt=""
-            draggable={false}
-            style={{ height: 50, width: 70, objectFit: 'cover', border: '2px solid var(--black)', pointerEvents: 'none' }}
-          />
-          <button
-            type="button"
-            onClick={() => onRemove(url)}
-            aria-label="Quitar"
-            style={{
-              position: 'absolute',
-              top: -8,
-              right: -8,
-              width: 20,
-              height: 20,
-              background: 'var(--black)',
-              color: 'var(--white)',
-              border: 'none',
-              fontSize: '0.7rem',
-              cursor: 'pointer',
-            }}
-          >
-            ✕
-          </button>
-          <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
-            <button
-              type="button"
-              disabled={i === 0}
-              onClick={() => onMove(i, i - 1)}
-              aria-label="Mover a la izquierda"
-              style={{
-                flex: 1,
-                fontSize: '0.7rem',
-                padding: '2px 0',
-                border: '1px solid var(--black)',
-                background: 'var(--white)',
-                opacity: i === 0 ? 0.3 : 1,
-                cursor: i === 0 ? 'default' : 'pointer',
-              }}
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              disabled={i === urls.length - 1}
-              onClick={() => onMove(i, i + 1)}
-              aria-label="Mover a la derecha"
-              style={{
-                flex: 1,
-                fontSize: '0.7rem',
-                padding: '2px 0',
-                border: '1px solid var(--black)',
-                background: 'var(--white)',
-                opacity: i === urls.length - 1 ? 0.3 : 1,
-                cursor: i === urls.length - 1 ? 'default' : 'pointer',
-              }}
-            >
-              →
-            </button>
-          </div>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={urls} strategy={horizontalListSortingStrategy}>
+        <div style={{ display: 'flex', gap: 14, marginTop: 14, overflowX: 'auto', paddingBottom: 8 }}>
+          {urls.map((url) => (
+            <SortablePhoto key={url} url={url} onRemove={() => onRemove(url)} />
+          ))}
         </div>
-      ))}
+      </SortableContext>
+    </DndContext>
+  )
+}
+
+function SortablePhoto({ url, onRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: url })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 'auto',
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, position: 'relative', flexShrink: 0, touchAction: 'none' }}
+      {...attributes}
+      {...listeners}
+    >
+      <img
+        src={url}
+        alt=""
+        draggable={false}
+        style={{
+          height: 160,
+          width: 200,
+          objectFit: 'cover',
+          border: '2px solid var(--black)',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          display: 'block',
+        }}
+      />
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove()
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label="Quitar"
+        style={{
+          position: 'absolute',
+          top: -10,
+          right: -10,
+          width: 26,
+          height: 26,
+          background: 'var(--black)',
+          color: 'var(--white)',
+          border: '2px solid var(--white)',
+          borderRadius: '50%',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+        }}
+      >
+        ✕
+      </button>
     </div>
   )
 }
