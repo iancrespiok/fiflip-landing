@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const initialForm = { nombre: '', contacto: '', monto: '', mensaje: '' }
+const initialForm = { nombre: '', email: '', telefono: '', monto: '', mensaje: '' }
 const API_URL = import.meta.env.VITE_API_URL
 
 const STATUS_LABEL = {
@@ -108,13 +108,25 @@ export default function InvestSection() {
                 <input id="inv-nombre" required value={form.nombre} onChange={update('nombre')} placeholder="Tu nombre" />
               </div>
               <div className="field">
-                <label htmlFor="inv-contacto">Email o teléfono</label>
+                <label htmlFor="inv-email">Email</label>
                 <input
-                  id="inv-contacto"
+                  id="inv-email"
+                  type="email"
                   required
-                  value={form.contacto}
-                  onChange={update('contacto')}
+                  value={form.email}
+                  onChange={update('email')}
                   placeholder="vos@email.com"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="inv-telefono">Teléfono</label>
+                <input
+                  id="inv-telefono"
+                  type="tel"
+                  required
+                  value={form.telefono}
+                  onChange={update('telefono')}
+                  placeholder="Ej: 11 5555-5555"
                 />
               </div>
               <div className="field">

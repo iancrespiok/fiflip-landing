@@ -20,7 +20,8 @@ const USE_CASES = [
 
 const initialForm = {
   nombre: '',
-  contacto: '',
+  email: '',
+  telefono: '',
   tipo: 'Vender más caro',
   ciudad: '',
   medidas: '',
@@ -110,7 +111,7 @@ export default function RenovationSection() {
                 <p>
                   Recibimos tu solicitud. Nuestro equipo va a revisar las fotos y
                   medidas y te va a enviar un presupuesto dentro de las próximas
-                  24 horas a {form.contacto || 'tu contacto'}.
+                  24 horas a {form.email || 'tu email'}.
                 </p>
                 <button
                   className="btn btn-outline"
@@ -131,13 +132,25 @@ export default function RenovationSection() {
                   <input id="nombre" required value={form.nombre} onChange={update('nombre')} placeholder="Tu nombre" />
                 </div>
                 <div className="field">
-                  <label htmlFor="contacto">Email o teléfono</label>
+                  <label htmlFor="email">Email</label>
                   <input
-                    id="contacto"
+                    id="email"
+                    type="email"
                     required
-                    value={form.contacto}
-                    onChange={update('contacto')}
+                    value={form.email}
+                    onChange={update('email')}
                     placeholder="vos@email.com"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="telefono">Teléfono</label>
+                  <input
+                    id="telefono"
+                    type="tel"
+                    required
+                    value={form.telefono}
+                    onChange={update('telefono')}
+                    placeholder="Ej: 11 5555-5555"
                   />
                 </div>
                 <div className="field">
