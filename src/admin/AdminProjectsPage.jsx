@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+const currentMonth = new Date().toISOString().slice(0, 7)
+
 const emptyForm = {
   title: '',
   description: '',
@@ -9,6 +11,7 @@ const emptyForm = {
   status: 'EN_OBRA',
   tea: '',
   teaProjected: true,
+  projectDate: currentMonth,
 }
 
 export default function AdminProjectsPage({ token, onLogout }) {
@@ -58,6 +61,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
       status: p.status || 'EN_OBRA',
       tea: p.tea ?? '',
       teaProjected: p.teaProjected ?? true,
+      projectDate: p.projectDate ? p.projectDate.slice(0, 7) : currentMonth,
     })
     setCoverImageUrl(p.coverImageUrl)
     setCoverFile(null)
@@ -115,6 +119,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
         status: form.category === 'FLIP' ? form.status : null,
         tea: form.category === 'FLIP' && form.tea !== '' ? Number(form.tea) : null,
         teaProjected: form.category === 'FLIP' ? form.teaProjected : null,
+        projectDate: form.projectDate,
       }
 
       const url = editingId ? `${API_URL}/api/admin/projects/${editingId}` : `${API_URL}/api/admin/projects`
@@ -171,7 +176,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
         <form onSubmit={handleSubmit} style={{ background: 'var(--white)', border: '2px solid var(--black)', padding: 28, marginBottom: 40 }}>
           <h2 style={{ fontSize: '1.1rem', marginBottom: 20 }}>{editingId ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div className="field">
               <label>Título</label>
               <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} required />
@@ -182,6 +187,15 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 <option value="RENOVATION">Refacción</option>
                 <option value="FLIP">Flip</option>
               </select>
+            </div>
+            <div className="field">
+              <label>Fecha (mes/año)</label>
+              <input
+                type="month"
+                value={form.projectDate}
+                onChange={(e) => setForm((f) => ({ ...f, projectDate: e.target.value }))}
+                required
+              />
             </div>
           </div>
 
