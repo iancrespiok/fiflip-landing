@@ -14,16 +14,22 @@ const emptyForm = {
   projectDate: currentMonth,
 }
 
+function swap(arr, i, j) {
+  const copy = [...arr]
+  ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  return copy
+}
+
 export default function AdminProjectsPage({ token, onLogout }) {
   const [projects, setProjects] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [coverImageUrl, setCoverImageUrl] = useState('')
-  const [coverFile, setCoverFile] = useState(null)
   const [beforeImageUrls, setBeforeImageUrls] = useState([])
-  const [beforeFiles, setBeforeFiles] = useState([])
   const [afterImageUrls, setAfterImageUrls] = useState([])
-  const [afterFiles, setAfterFiles] = useState([])
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadingBefore, setUploadingBefore] = useState(false)
+  const [uploadingAfter, setUploadingAfter] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -44,11 +50,8 @@ export default function AdminProjectsPage({ token, onLogout }) {
     setEditingId(null)
     setForm(emptyForm)
     setCoverImageUrl('')
-    setCoverFile(null)
     setBeforeImageUrls([])
-    setBeforeFiles([])
     setAfterImageUrls([])
-    setAfterFiles([])
     setError('')
   }
 
@@ -64,11 +67,8 @@ export default function AdminProjectsPage({ token, onLogout }) {
       projectDate: p.projectDate ? p.projectDate.slice(0, 7) : currentMonth,
     })
     setCoverImageUrl(p.coverImageUrl)
-    setCoverFile(null)
     setBeforeImageUrls(p.beforeImageUrls || [])
-    setBeforeFiles([])
     setAfterImageUrls(p.afterImageUrls || [])
-    setAfterFiles([])
     setError('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -90,32 +90,54 @@ export default function AdminProjectsPage({ token, onLogout }) {
     return url
   }
 
+  const handleCoverSelect = async (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    setError('')
+    setUploadingCover(true)
+    try {
+      setCoverImageUrl(await uploadFile(file))
+    } catch {
+      setError('No pudimos subir la portada. Probá de nuevo.')
+    } finally {
+      setUploadingCover(false)
+    }
+  }
+
+  const handleMultiSelect = async (e, setUrls, setUploading) => {
+    const files = Array.from(e.target.files || [])
+    e.target.value = ''
+    if (files.length === 0) return
+    setError('')
+    setUploading(true)
+    try {
+      const urls = await Promise.all(files.map(uploadFile))
+      setUrls((arr) => [...arr, ...urls])
+    } catch {
+      setError('No pudimos subir alguna de las fotos. Probá de nuevo.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!coverImageUrl) return setError('Falta la foto de portada.')
+    if (beforeImageUrls.length === 0) return setError('Falta al menos una foto de "antes".')
+    if (afterImageUrls.length === 0) return setError('Falta al menos una foto de "después".')
+
     setSaving(true)
     try {
-      let finalCoverUrl = coverImageUrl
-      if (coverFile) {
-        finalCoverUrl = await uploadFile(coverFile)
-      }
-      const newBeforeUrls = await Promise.all(beforeFiles.map(uploadFile))
-      const newAfterUrls = await Promise.all(afterFiles.map(uploadFile))
-
-      const finalBefore = [...beforeImageUrls, ...newBeforeUrls]
-      const finalAfter = [...afterImageUrls, ...newAfterUrls]
-
-      if (!finalCoverUrl) throw new Error('missing cover')
-      if (finalBefore.length === 0) throw new Error('missing before')
-      if (finalAfter.length === 0) throw new Error('missing after')
-
       const payload = {
         title: form.title,
         description: form.description,
         category: form.category,
-        coverImageUrl: finalCoverUrl,
-        beforeImageUrls: finalBefore,
-        afterImageUrls: finalAfter,
+        coverImageUrl,
+        beforeImageUrls,
+        afterImageUrls,
         status: form.category === 'FLIP' ? form.status : null,
         tea: form.category === 'FLIP' && form.tea !== '' ? Number(form.tea) : null,
         teaProjected: form.category === 'FLIP' ? form.teaProjected : null,
@@ -136,8 +158,8 @@ export default function AdminProjectsPage({ token, onLogout }) {
 
       resetForm()
       loadProjects()
-    } catch (err) {
-      setError('No pudimos guardar el proyecto. Revisá que tengas portada, al menos 1 foto de antes y 1 de después.')
+    } catch {
+      setError('No pudimos guardar el proyecto. Probá de nuevo en un momento.')
     } finally {
       setSaving(false)
     }
@@ -245,13 +267,9 @@ export default function AdminProjectsPage({ token, onLogout }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
             <div className="field">
               <label>Portada</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCoverFile(e.target.files[0] || null)}
-              />
-              {coverFile && <FileNames files={[coverFile]} />}
-              {coverImageUrl && !coverFile && <ImgPreview url={coverImageUrl} />}
+              <input type="file" accept="image/*" onChange={handleCoverSelect} disabled={uploadingCover} />
+              {uploadingCover && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+              {coverImageUrl && !uploadingCover && <ImgPreview url={coverImageUrl} />}
             </div>
             <div className="field">
               <label>Fotos "antes"</label>
@@ -259,10 +277,15 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) => setBeforeFiles(Array.from(e.target.files))}
+                onChange={(e) => handleMultiSelect(e, setBeforeImageUrls, setUploadingBefore)}
+                disabled={uploadingBefore}
               />
-              {beforeFiles.length > 0 && <FileNames files={beforeFiles} />}
-              <ImgList urls={beforeImageUrls} onRemove={(url) => setBeforeImageUrls((arr) => arr.filter((u) => u !== url))} />
+              {uploadingBefore && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+              <ImgList
+                urls={beforeImageUrls}
+                onRemove={(url) => setBeforeImageUrls((arr) => arr.filter((u) => u !== url))}
+                onMove={(i, j) => setBeforeImageUrls((arr) => swap(arr, i, j))}
+              />
             </div>
             <div className="field">
               <label>Fotos "después"</label>
@@ -270,17 +293,22 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) => setAfterFiles(Array.from(e.target.files))}
+                onChange={(e) => handleMultiSelect(e, setAfterImageUrls, setUploadingAfter)}
+                disabled={uploadingAfter}
               />
-              {afterFiles.length > 0 && <FileNames files={afterFiles} />}
-              <ImgList urls={afterImageUrls} onRemove={(url) => setAfterImageUrls((arr) => arr.filter((u) => u !== url))} />
+              {uploadingAfter && <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-400)' }}>Subiendo…</p>}
+              <ImgList
+                urls={afterImageUrls}
+                onRemove={(url) => setAfterImageUrls((arr) => arr.filter((u) => u !== url))}
+                onMove={(i, j) => setAfterImageUrls((arr) => swap(arr, i, j))}
+              />
             </div>
           </div>
 
           {error && <p style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: 16 }}>{error}</p>}
 
           <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-            <button type="submit" className="btn" disabled={saving}>
+            <button type="submit" className="btn" disabled={saving || uploadingCover || uploadingBefore || uploadingAfter}>
               {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear proyecto'}
             </button>
             {editingId && (
@@ -325,28 +353,21 @@ export default function AdminProjectsPage({ token, onLogout }) {
   )
 }
 
-function FileNames({ files }) {
-  return (
-    <p style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--gray-700)' }}>
-      {files.map((f) => f.name).join(', ')}
-    </p>
-  )
-}
-
 function ImgPreview({ url }) {
   return <img src={url} alt="" style={{ marginTop: 8, height: 60, border: '2px solid var(--black)' }} />
 }
 
-function ImgList({ urls, onRemove }) {
+function ImgList({ urls, onRemove, onMove }) {
   if (!urls?.length) return null
   return (
-    <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-      {urls.map((url) => (
+    <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+      {urls.map((url, i) => (
         <div key={url} style={{ position: 'relative' }}>
-          <img src={url} alt="" style={{ height: 50, border: '2px solid var(--black)' }} />
+          <img src={url} alt="" style={{ height: 50, width: 70, objectFit: 'cover', border: '2px solid var(--black)' }} />
           <button
             type="button"
             onClick={() => onRemove(url)}
+            aria-label="Quitar"
             style={{
               position: 'absolute',
               top: -8,
@@ -362,6 +383,42 @@ function ImgList({ urls, onRemove }) {
           >
             ✕
           </button>
+          <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
+            <button
+              type="button"
+              disabled={i === 0}
+              onClick={() => onMove(i, i - 1)}
+              aria-label="Mover a la izquierda"
+              style={{
+                flex: 1,
+                fontSize: '0.7rem',
+                padding: '2px 0',
+                border: '1px solid var(--black)',
+                background: 'var(--white)',
+                opacity: i === 0 ? 0.3 : 1,
+                cursor: i === 0 ? 'default' : 'pointer',
+              }}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              disabled={i === urls.length - 1}
+              onClick={() => onMove(i, i + 1)}
+              aria-label="Mover a la derecha"
+              style={{
+                flex: 1,
+                fontSize: '0.7rem',
+                padding: '2px 0',
+                border: '1px solid var(--black)',
+                background: 'var(--white)',
+                opacity: i === urls.length - 1 ? 0.3 : 1,
+                cursor: i === urls.length - 1 ? 'default' : 'pointer',
+              }}
+            >
+              →
+            </button>
+          </div>
         </div>
       ))}
     </div>
