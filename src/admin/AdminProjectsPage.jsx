@@ -358,12 +358,47 @@ function ImgPreview({ url }) {
 }
 
 function ImgList({ urls, onRemove, onMove }) {
+  const [dragIndex, setDragIndex] = useState(null)
+  const [overIndex, setOverIndex] = useState(null)
+
   if (!urls?.length) return null
+
   return (
     <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
       {urls.map((url, i) => (
-        <div key={url} style={{ position: 'relative' }}>
-          <img src={url} alt="" style={{ height: 50, width: 70, objectFit: 'cover', border: '2px solid var(--black)' }} />
+        <div
+          key={url}
+          draggable
+          onDragStart={() => setDragIndex(i)}
+          onDragOver={(e) => {
+            e.preventDefault()
+            if (overIndex !== i) setOverIndex(i)
+          }}
+          onDragLeave={() => setOverIndex((cur) => (cur === i ? null : cur))}
+          onDrop={(e) => {
+            e.preventDefault()
+            if (dragIndex !== null && dragIndex !== i) onMove(dragIndex, i)
+            setDragIndex(null)
+            setOverIndex(null)
+          }}
+          onDragEnd={() => {
+            setDragIndex(null)
+            setOverIndex(null)
+          }}
+          style={{
+            position: 'relative',
+            cursor: 'grab',
+            opacity: dragIndex === i ? 0.4 : 1,
+            outline: overIndex === i && dragIndex !== i ? '2px dashed var(--black)' : 'none',
+            outlineOffset: 2,
+          }}
+        >
+          <img
+            src={url}
+            alt=""
+            draggable={false}
+            style={{ height: 50, width: 70, objectFit: 'cover', border: '2px solid var(--black)', pointerEvents: 'none' }}
+          />
           <button
             type="button"
             onClick={() => onRemove(url)}
