@@ -49,6 +49,15 @@ export default function RenovationSection() {
     setFiles(Array.from(e.target.files || []))
   }
 
+  const uploadPhoto = async (file) => {
+    const body = new FormData()
+    body.append('file', file)
+    const res = await fetch(`${API_URL}/api/leads/uploads`, { method: 'POST', body })
+    if (!res.ok) throw new Error('upload failed')
+    const { url } = await res.json()
+    return url
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -56,6 +65,7 @@ export default function RenovationSection() {
     const eventId = crypto.randomUUID()
     const customEventId = crypto.randomUUID()
     try {
+      const fotoUrls = await Promise.all(files.map(uploadPhoto))
       const res = await fetch(`${API_URL}/api/leads/renovation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,10 +73,7 @@ export default function RenovationSection() {
           ...form,
           eventId,
           customEventId,
-          descripcion:
-            files.length > 0
-              ? `${form.descripcion}\n\n(${files.length} foto${files.length > 1 ? 's' : ''} adjuntada${files.length > 1 ? 's' : ''} en el formulario, envío de archivos pendiente de implementar)`
-              : form.descripcion,
+          fotoUrls,
         }),
       })
       if (!res.ok) throw new Error('request failed')
