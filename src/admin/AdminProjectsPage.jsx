@@ -188,21 +188,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--gray-100)', padding: '40px 24px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '1.5rem' }}>Proyectos</h1>
-          <button
-            className="btn btn-outline"
-            onClick={() => {
-              localStorage.removeItem('fiflip_admin_token')
-              onLogout()
-            }}
-          >
-            Salir
-          </button>
-        </div>
-
+    <div>
         <form onSubmit={handleSubmit} style={{ background: 'var(--white)', border: '2px solid var(--black)', padding: 28, marginBottom: 40 }}>
           <h2 style={{ fontSize: '1.1rem', marginBottom: 20 }}>{editingId ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
 
@@ -364,7 +350,6 @@ export default function AdminProjectsPage({ token, onLogout }) {
             </div>
           ))}
         </div>
-      </div>
     </div>
   )
 }

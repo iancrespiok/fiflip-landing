@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { navigate } from '../router.js'
 
 const USE_CASES = [
   {
@@ -99,6 +100,17 @@ export default function RenovationSection() {
           Contanos qué querés renovar, mandanos fotos y medidas, y te devolvemos
           un presupuesto en un día hábil.
         </p>
+
+        <button
+          className="btn btn-outline"
+          style={{ marginTop: 24 }}
+          onClick={(e) => {
+            e.preventDefault()
+            navigate('/presupuesto')
+          }}
+        >
+          Calculá un presupuesto aproximado →
+        </button>
 
         <div className="reno-grid">
           <div className="reno-cases">

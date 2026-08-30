@@ -5,6 +5,7 @@ import RenovationSection from './components/RenovationSection.jsx'
 import InvestSection from './components/InvestSection.jsx'
 import PortfolioSection from './components/PortfolioSection.jsx'
 import ProjectDetailPage from './components/ProjectDetailPage.jsx'
+import BudgetCalculatorPage from './components/BudgetCalculatorPage.jsx'
 import Footer from './components/Footer.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 
@@ -24,6 +25,10 @@ export default function App() {
   const projectMatch = pathname.match(/^\/proyecto\/(\d+)/)
   if (projectMatch) {
     return <ProjectDetailPage id={projectMatch[1]} />
+  }
+
+  if (pathname.startsWith('/presupuesto')) {
+    return <BudgetCalculatorPage />
   }
 
   return (
