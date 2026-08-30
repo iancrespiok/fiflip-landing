@@ -103,6 +103,32 @@ tabs) and `ProjectDetailPage.jsx` (own page per project, black-background
 `InvestSection.jsx` also pulls the 3 most recent `FLIP` projects as
 investment opportunity cards — same `Project` data, different view.
 
+## Budget calculator (`/presupuesto`)
+
+Multi-step wizard (`BudgetCalculatorPage.jsx`): room count → per room
+(type BAÑO/COCINA/HABITACIÓN + m² + a yes/no checklist specific to that
+type, see `QUESTIONS`) → estimated total with margin applied → a
+lead-capture CTA that reuses `POST /api/leads/renovation` (so calculator
+users land in the same pipeline as the regular form, with the itemized
+breakdown stuffed into `descripcion`).
+
+Pricing is entirely admin-editable (`pricing_items` table /
+`PricingItem` entity, `/api/budget/pricing` public GET, protected
+`/api/admin/budget/pricing` PUT, edited from the "Precios" tab
+in `/admin/projects`, next to "Proyectos"). Every line item carries
+**material and labor as separate rows** (`<key>_material_fixed` /
+`<key>_labor_fixed`, or `_material_m2` / `_labor_m2` for area-based
+ones) — the frontend sums both. Paint is the one exception: it's a
+formula, not a flat per-m² price — `paint_labor_m2` (labor) plus
+however many paint/enduido buckets and fijador units the m² requires,
+computed from separate `*_coverage_m2` (`PricingUnit.COVERAGE_M2`)
+"yield" rows also editable in admin (see `paintCost()` in
+`BudgetCalculatorPage.jsx` and the `PINTURA` group in the pricing
+catalog). `PricingSeeder` keeps the catalog in sync on every boot
+(deletes superseded keys, inserts missing ones, never touches a value
+an admin already edited for a key that still exists) — see gotcha #9
+below before adding another `PricingUnit` value.
+
 ## Design system
 
 Strict monochrome black/white brutalist look — bold 2px borders, hard
@@ -172,3 +198,23 @@ caps) + Space Grotesk (body).
    is fine — it's blocking the non-browser request, not reporting a real
    outage. Verify through the actual Browser tool (which solves the
    challenge automatically) before concluding the deploy is broken.
+
+9. **Adding a value to a Java enum used with `@Enumerated(EnumType.STRING)`
+   can crash the app on next deploy**, even though it compiles fine and
+   the local H2 tests pass. Hibernate's `ddl-auto=update` generates a
+   Postgres `CHECK` constraint listing the enum's literal values *at the
+   moment the column is first created*, and never widens that constraint
+   later — so the first insert using the new value gets rejected
+   (`violates check constraint "<table>_<column>_check"`) and
+   `CommandLineRunner`/seeder beans that run at startup take the whole
+   app down with them. H2 doesn't reproduce this (its `create-drop` test
+   datasource always starts from a fresh schema), so this only shows up
+   against the real Postgres — check Railway's Deploy Logs for
+   `DataIntegrityViolationException` / `ConstraintViolationException` if
+   a deploy is stuck "Crashed" with no obvious cause. Fix: drop the stale
+   constraint before it's needed, e.g. from the seeder itself via
+   `JdbcTemplate.execute("ALTER TABLE <table> DROP CONSTRAINT IF EXISTS <table>_<column>_check")`
+   (see `PricingSeeder` for the pattern — it now does this defensively on
+   every boot). `budget/` (the `/presupuesto` calculator) is the module
+   this happened in; watch for it again if `PricingUnit` or `Project`'s
+   enums grow another value.
