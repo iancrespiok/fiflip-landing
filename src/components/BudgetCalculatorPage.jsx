@@ -10,36 +10,57 @@ const ROOM_TYPES = [
   { key: 'HABITACION', label: 'Habitación' },
 ]
 
+// compute: 'PAINT' (mano de obra por m² + materiales por rendimiento),
+// 'M2_SPLIT' (material + mano de obra, ambos por m²), 'FIXED_SPLIT' (material + mano de obra, fijos)
 const QUESTIONS = {
   BANO: [
-    { key: 'sanitarios', label: 'Cambiar sanitarios', priceKey: 'sanitary_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', priceKey: 'ceiling_gypsum_m2', perM2: true },
-    { key: 'revestimientos', label: 'Cambiar los revestimientos', priceKey: 'wall_covering_m2', perM2: true },
-    { key: 'ducha', label: 'Cambiar bañadera por ducha con mampara de vidrio', priceKey: 'shower_glass_fixed' },
-    { key: 'enchufes', label: 'Cambiar enchufes', priceKey: 'outlets_fixed' },
-    { key: 'vanitory', label: 'Cambiar vanitory con espejo nuevo', priceKey: 'vanity_mirror_fixed' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', priceKey: 'door_window_fixed' },
+    { key: 'sanitarios', label: 'Cambiar sanitarios', compute: 'FIXED_SPLIT', materialKey: 'sanitary_material_fixed', laborKey: 'sanitary_labor_fixed' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'revestimientos', label: 'Cambiar los revestimientos', compute: 'M2_SPLIT', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'ducha', label: 'Cambiar bañadera por ducha con mampara de vidrio', compute: 'FIXED_SPLIT', materialKey: 'shower_glass_material_fixed', laborKey: 'shower_glass_labor_fixed' },
+    { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
+    { key: 'vanitory', label: 'Cambiar vanitory con espejo nuevo', compute: 'FIXED_SPLIT', materialKey: 'vanity_mirror_material_fixed', laborKey: 'vanity_mirror_labor_fixed' },
+    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
   ],
   COCINA: [
-    { key: 'ampliar', label: 'Ampliar el espacio actual', priceKey: 'kitchen_expand_fixed' },
-    { key: 'muebles', label: 'Cambiar muebles', priceKey: 'kitchen_furniture_fixed' },
-    { key: 'revestimientos', label: 'Cambiar revestimientos', priceKey: 'wall_covering_m2', perM2: true },
-    { key: 'griferias', label: 'Cambiar griferías', priceKey: 'faucet_fixed' },
-    { key: 'mesadas', label: 'Cambiar mesadas', priceKey: 'countertop_fixed' },
-    { key: 'enchufes', label: 'Cambiar enchufes', priceKey: 'outlets_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', priceKey: 'ceiling_gypsum_m2', perM2: true },
-    { key: 'pintar', label: 'Pintar', priceKey: 'paint_m2', perM2: true },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', priceKey: 'door_window_fixed' },
-    { key: 'aire', label: 'Colocar aire acondicionado', priceKey: 'ac_fixed' },
+    { key: 'ampliar', label: 'Ampliar el espacio actual', compute: 'FIXED_SPLIT', materialKey: 'kitchen_expand_material_fixed', laborKey: 'kitchen_expand_labor_fixed' },
+    { key: 'muebles', label: 'Cambiar muebles', compute: 'FIXED_SPLIT', materialKey: 'kitchen_furniture_material_fixed', laborKey: 'kitchen_furniture_labor_fixed' },
+    { key: 'revestimientos', label: 'Cambiar revestimientos', compute: 'M2_SPLIT', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'griferias', label: 'Cambiar griferías', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
+    { key: 'mesadas', label: 'Cambiar mesadas', compute: 'FIXED_SPLIT', materialKey: 'countertop_material_fixed', laborKey: 'countertop_labor_fixed' },
+    { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
+    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
+    { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
   ],
   HABITACION: [
-    { key: 'pintar', label: 'Pintar', priceKey: 'paint_m2', perM2: true },
-    { key: 'pisos', label: 'Cambiar pisos', priceKey: 'floor_m2', perM2: true },
-    { key: 'placar', label: 'Si tiene placar, cambiar las puertas', priceKey: 'closet_doors_fixed' },
-    { key: 'luminaria', label: 'Cambiar luminaria', priceKey: 'lighting_fixed' },
-    { key: 'aire', label: 'Colocar aire acondicionado', priceKey: 'ac_fixed' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', priceKey: 'door_window_fixed' },
+    { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
+    { key: 'pisos', label: 'Cambiar pisos', compute: 'M2_SPLIT', materialKey: 'floor_material_m2', laborKey: 'floor_labor_m2' },
+    { key: 'placar', label: 'Si tiene placar, cambiar las puertas', compute: 'FIXED_SPLIT', materialKey: 'closet_doors_material_fixed', laborKey: 'closet_doors_labor_fixed' },
+    { key: 'luminaria', label: 'Cambiar luminaria', compute: 'FIXED_SPLIT', materialKey: 'lighting_material_fixed', laborKey: 'lighting_labor_fixed' },
+    { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
+    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
   ],
+}
+
+function unitsNeeded(m2, coverage) {
+  return coverage > 0 ? Math.ceil(m2 / coverage) : 0
+}
+
+function paintCost(m2, priceMap) {
+  const labor = (priceMap.paint_labor_m2 || 0) * m2
+  const paint = unitsNeeded(m2, priceMap.paint_bucket_coverage_m2) * (priceMap.paint_bucket_price || 0)
+  const putty = unitsNeeded(m2, priceMap.putty_bucket_coverage_m2) * (priceMap.putty_bucket_price || 0)
+  const primer = unitsNeeded(m2, priceMap.primer_coverage_m2) * (priceMap.primer_price || 0)
+  return labor + paint + putty + primer
+}
+
+function itemCost(q, m2, priceMap) {
+  if (q.compute === 'PAINT') return paintCost(m2, priceMap)
+  const material = priceMap[q.materialKey] || 0
+  const labor = priceMap[q.laborKey] || 0
+  return q.compute === 'M2_SPLIT' ? (material + labor) * m2 : material + labor
 }
 
 function emptyRoom() {
@@ -51,8 +72,7 @@ function roomSubtotal(room, priceMap) {
   const m2 = Number(room.m2) || 0
   return questions.reduce((sum, q) => {
     if (!room.answers[q.key]) return sum
-    const unitPrice = priceMap[q.priceKey] || 0
-    return sum + (q.perM2 ? unitPrice * m2 : unitPrice)
+    return sum + itemCost(q, m2, priceMap)
   }, 0)
 }
 

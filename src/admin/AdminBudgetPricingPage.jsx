@@ -6,11 +6,13 @@ const UNIT_LABEL = {
   M2: 'por m²',
   FIXED: 'fijo',
   PERCENT: '%',
+  COVERAGE_M2: 'm² por unidad',
 }
 
-const GROUP_ORDER = ['GENERAL', 'BAÑO', 'COCINA', 'HABITACIÓN', 'CONFIG']
+const GROUP_ORDER = ['GENERAL', 'PINTURA', 'BAÑO', 'COCINA', 'HABITACIÓN', 'CONFIG']
 const GROUP_LABEL = {
   GENERAL: 'General (compartido entre habitaciones)',
+  PINTURA: 'Pintura',
   BAÑO: 'Baño',
   COCINA: 'Cocina',
   HABITACIÓN: 'Habitación',
@@ -90,7 +92,7 @@ export default function AdminBudgetPricingPage({ token, onLogout }) {
                   <label style={{ flex: 1, fontSize: '0.9rem' }}>{i.label}</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: 220 }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--gray-700)' }}>
-                      {i.unit === 'PERCENT' ? '' : '$'}
+                      {i.unit === 'PERCENT' || i.unit === 'COVERAGE_M2' ? '' : '$'}
                     </span>
                     <input
                       type="number"
