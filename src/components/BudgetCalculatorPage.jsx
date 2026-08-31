@@ -344,12 +344,9 @@ function RoomDiagram({ room }) {
           <div
             style={{
               position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: '32%',
-              background: 'var(--gray-400)',
-              opacity: 0.6,
+              inset: 10,
+              border: '2.5px solid var(--gray-400)',
+              pointerEvents: 'none',
             }}
           />
         )}
