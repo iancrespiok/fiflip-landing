@@ -115,27 +115,212 @@ function roomSubtotal(room, priceMap) {
   }, 0)
 }
 
-function checkedTags(room) {
-  const questions = QUESTIONS[room.type] || []
-  return questions.filter((q) => room.answers[q.key]).map((q) => ITEM_TAGS[q.key] || q.key)
-}
-
 function formatMoney(n) {
   return '$' + Math.round(n).toLocaleString('es-AR')
 }
 
-// Plano ilustrativo: un rectángulo proporcional a largo x ancho, con las etiquetas
-// de lo que se va tildando dentro. No pretende ser un plano arquitectónico real,
-// solo darle al cliente una idea visual de la habitación que está armando.
-function RoomDiagram({ room, tags }) {
+// Ítems que se dibujan como capas sobre el plano en vez de como íconos sueltos
+const OVERLAY_KEYS = ['techo', 'pisos', 'revestimientos']
+
+function Svg({ children }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  )
+}
+
+const ICONS = {
+  sanitarios: [
+    {
+      label: 'Inodoro',
+      render: () => (
+        <Svg>
+          <rect x="7" y="2" width="10" height="5" rx="1" />
+          <path d="M6 9h12a1 1 0 0 1 1 1v3a7 6 0 0 1-14 0v-3a1 1 0 0 1 1-1z" />
+        </Svg>
+      ),
+    },
+    {
+      label: 'Bidet',
+      render: () => (
+        <Svg>
+          <path d="M6 8h12a1 1 0 0 1 1 1v4a7 6 0 0 1-14 0v-4a1 1 0 0 1 1-1z" />
+          <circle cx="12" cy="6" r="1.3" fill="var(--black)" stroke="none" />
+        </Svg>
+      ),
+    },
+  ],
+  ducha: [
+    {
+      label: 'Ducha',
+      render: () => (
+        <Svg>
+          <rect x="3" y="3" width="18" height="18" />
+          <line x1="3" y1="21" x2="21" y2="3" />
+          <circle cx="18" cy="6" r="2" />
+        </Svg>
+      ),
+    },
+  ],
+  vanitory: [
+    {
+      label: 'Vanitory',
+      render: () => (
+        <Svg>
+          <rect x="4" y="2" width="16" height="7" />
+          <ellipse cx="12" cy="13" rx="6" ry="3" />
+          <rect x="2" y="15" width="20" height="4" />
+        </Svg>
+      ),
+    },
+  ],
+  griferias: [
+    {
+      label: 'Grifería',
+      render: () => (
+        <Svg>
+          <path d="M6 20v-9a6 6 0 0 1 12 0v3" />
+          <line x1="18" y1="14" x2="18" y2="17" />
+        </Svg>
+      ),
+    },
+  ],
+  enchufes: [
+    {
+      label: 'Enchufe',
+      render: () => (
+        <Svg>
+          <rect x="4" y="4" width="16" height="16" rx="3" />
+          <line x1="10" y1="9" x2="10" y2="15" />
+          <line x1="14" y1="9" x2="14" y2="15" />
+        </Svg>
+      ),
+    },
+  ],
+  muebles: [
+    {
+      label: 'Muebles',
+      render: () => (
+        <Svg>
+          <rect x="2" y="4" width="9" height="16" />
+          <rect x="13" y="4" width="9" height="16" />
+          <circle cx="9" cy="12" r="0.8" fill="var(--black)" stroke="none" />
+          <circle cx="15" cy="12" r="0.8" fill="var(--black)" stroke="none" />
+        </Svg>
+      ),
+    },
+  ],
+  mesadas: [
+    {
+      label: 'Mesada',
+      render: () => (
+        <Svg>
+          <rect x="2" y="9" width="20" height="6" />
+        </Svg>
+      ),
+    },
+  ],
+  placar: [
+    {
+      label: 'Placar',
+      render: () => (
+        <Svg>
+          <rect x="3" y="2" width="18" height="20" />
+          <line x1="12" y1="2" x2="12" y2="22" />
+          <circle cx="9.5" cy="12" r="0.9" fill="var(--black)" stroke="none" />
+          <circle cx="14.5" cy="12" r="0.9" fill="var(--black)" stroke="none" />
+        </Svg>
+      ),
+    },
+  ],
+  luminaria: [
+    {
+      label: 'Luminaria',
+      render: () => (
+        <Svg>
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="4" />
+          <line x1="12" y1="20" x2="12" y2="23" />
+          <line x1="1" y1="12" x2="4" y2="12" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+        </Svg>
+      ),
+    },
+  ],
+  aire: [
+    {
+      label: 'Aire ac.',
+      render: () => (
+        <Svg>
+          <rect x="2" y="5" width="20" height="7" rx="1.5" />
+          <line x1="5" y1="8.5" x2="19" y2="8.5" />
+          <path d="M8 15l-2 4M12 15v4M16 15l2 4" />
+        </Svg>
+      ),
+    },
+  ],
+  abertura: [
+    {
+      label: 'Abertura',
+      render: () => (
+        <Svg>
+          <rect x="3" y="2" width="18" height="20" />
+          <path d="M17 4l-9 2v14l9-2z" strokeDasharray="2 2" />
+          <circle cx="10.5" cy="12" r="0.8" fill="var(--black)" stroke="none" />
+        </Svg>
+      ),
+    },
+  ],
+  ampliar: [
+    {
+      label: 'Ampliación',
+      render: () => (
+        <Svg>
+          <path d="M4 10V4h6" />
+          <path d="M20 14v6h-6" />
+          <line x1="4" y1="4" x2="10" y2="10" />
+          <line x1="20" y1="20" x2="14" y2="14" />
+        </Svg>
+      ),
+    },
+  ],
+  pintar: [
+    {
+      label: 'Pintura',
+      render: () => (
+        <Svg>
+          <rect x="3" y="4" width="14" height="6" rx="1" />
+          <line x1="17" y1="7" x2="17" y2="14" />
+          <line x1="17" y1="14" x2="21" y2="18" />
+        </Svg>
+      ),
+    },
+  ],
+}
+
+// Plano ilustrativo: un rectángulo proporcional a largo x ancho. Los ítems que
+// cubren toda una superficie (piso, revestimientos, luces de techo) se dibujan
+// como capas sobre el plano; el resto aparece como un ícono representativo.
+// No pretende ser un plano arquitectónico real — es una referencia visual.
+function RoomDiagram({ room }) {
   const largo = Number(room.largo) || 0
   const ancho = Number(room.ancho) || 0
   if (largo <= 0 || ancho <= 0) return null
 
+  const questions = QUESTIONS[room.type] || []
+  const checkedKeys = questions.filter((q) => room.answers[q.key]).map((q) => q.key)
+  const hasTecho = checkedKeys.includes('techo')
+  const hasPisos = checkedKeys.includes('pisos')
+  const hasRevestimientos = checkedKeys.includes('revestimientos')
+  const iconEntries = checkedKeys
+    .filter((k) => !OVERLAY_KEYS.includes(k))
+    .flatMap((k) => (ICONS[k] || [{ label: ITEM_TAGS[k] || k, render: null }]).map((entry, i) => ({ ...entry, mapKey: `${k}-${i}` })))
+
   const maxPx = 320
   const pxPerM = Math.min(maxPx / largo, maxPx / ancho, 90)
-  const widthPx = Math.max(ancho * pxPerM, 90)
-  const heightPx = Math.max(largo * pxPerM, 90)
+  const widthPx = Math.max(ancho * pxPerM, 110)
+  const heightPx = Math.max(largo * pxPerM, 110)
 
   return (
     <div style={{ marginTop: 28 }}>
@@ -145,34 +330,80 @@ function RoomDiagram({ room, tags }) {
       <div
         style={{
           marginTop: 10,
+          position: 'relative',
           width: widthPx,
           height: heightPx,
           border: '3px solid var(--black)',
-          background: 'var(--white)',
-          padding: 10,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignContent: 'flex-start',
-          gap: 6,
+          background: hasPisos
+            ? 'repeating-linear-gradient(45deg, var(--gray-200), var(--gray-200) 2px, var(--white) 2px, var(--white) 9px)'
+            : 'var(--white)',
+          overflow: 'hidden',
         }}
       >
-        {tags.map((tag, i) => (
-          <span
-            key={tag + i}
+        {hasRevestimientos && (
+          <div
             style={{
-              border: '1.5px solid var(--black)',
-              background: 'var(--gray-100)',
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.03em',
-              padding: '4px 7px',
-              height: 'fit-content',
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '32%',
+              background: 'var(--gray-400)',
+              opacity: 0.6,
             }}
-          >
-            {tag}
-          </span>
-        ))}
+          />
+        )}
+
+        {hasTecho && (
+          <div style={{ position: 'absolute', top: 10, left: 0, right: 0, display: 'flex', justifyContent: 'space-evenly' }}>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: '50%',
+                  background: 'var(--black)',
+                  boxShadow: '0 0 6px 2px rgba(0,0,0,0.25)',
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            height: '100%',
+            padding: 10,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignContent: hasTecho ? 'center' : 'flex-start',
+            gap: 6,
+          }}
+        >
+          {iconEntries.map((entry) => (
+            <div
+              key={entry.mapKey}
+              style={{
+                border: '1.5px solid var(--black)',
+                background: 'var(--white)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                padding: '5px 6px 4px',
+                height: 'fit-content',
+              }}
+            >
+              {entry.render ? entry.render() : null}
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                {entry.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
       <p style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--gray-400)' }}>
         {ancho}m × {largo}m — plano orientativo, no a escala arquitectónica
@@ -327,9 +558,7 @@ export default function BudgetCalculatorPage() {
                   </div>
                 </div>
 
-                {roomFloorM2(currentRoom) > 0 && (
-                  <RoomDiagram room={currentRoom} tags={checkedTags(currentRoom)} />
-                )}
+                {roomFloorM2(currentRoom) > 0 && <RoomDiagram room={currentRoom} />}
 
                 <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {QUESTIONS[currentRoom.type].map((q) => (
