@@ -15,28 +15,29 @@ const ROOM_TYPES = [
 const QUESTIONS = {
   BANO: [
     { key: 'sanitarios', label: 'Cambiar sanitarios', compute: 'FIXED_SPLIT', materialKey: 'sanitary_material_fixed', laborKey: 'sanitary_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
-    { key: 'revestimientos', label: 'Cambiar los revestimientos', compute: 'M2_SPLIT', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'revestimientos', label: 'Cambiar los revestimientos', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
     { key: 'ducha', label: 'Cambiar bañadera por ducha con mampara de vidrio', compute: 'FIXED_SPLIT', materialKey: 'shower_glass_material_fixed', laborKey: 'shower_glass_labor_fixed' },
     { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
     { key: 'vanitory', label: 'Cambiar vanitory con espejo nuevo', compute: 'FIXED_SPLIT', materialKey: 'vanity_mirror_material_fixed', laborKey: 'vanity_mirror_labor_fixed' },
+    { key: 'griferias', label: 'Cambiar griferías', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
     { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
   ],
   COCINA: [
     { key: 'ampliar', label: 'Ampliar el espacio actual', compute: 'FIXED_SPLIT', materialKey: 'kitchen_expand_material_fixed', laborKey: 'kitchen_expand_labor_fixed' },
     { key: 'muebles', label: 'Cambiar muebles', compute: 'FIXED_SPLIT', materialKey: 'kitchen_furniture_material_fixed', laborKey: 'kitchen_furniture_labor_fixed' },
-    { key: 'revestimientos', label: 'Cambiar revestimientos', compute: 'M2_SPLIT', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'revestimientos', label: 'Cambiar revestimientos', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
     { key: 'griferias', label: 'Cambiar griferías', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
     { key: 'mesadas', label: 'Cambiar mesadas', compute: 'FIXED_SPLIT', materialKey: 'countertop_material_fixed', laborKey: 'countertop_labor_fixed' },
     { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
     { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
     { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
     { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
   ],
   HABITACION: [
     { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
-    { key: 'pisos', label: 'Cambiar pisos', compute: 'M2_SPLIT', materialKey: 'floor_material_m2', laborKey: 'floor_labor_m2' },
+    { key: 'pisos', label: 'Cambiar pisos', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'floor_material_m2', laborKey: 'floor_labor_m2' },
     { key: 'placar', label: 'Si tiene placar, cambiar las puertas', compute: 'FIXED_SPLIT', materialKey: 'closet_doors_material_fixed', laborKey: 'closet_doors_labor_fixed' },
     { key: 'luminaria', label: 'Cambiar luminaria', compute: 'FIXED_SPLIT', materialKey: 'lighting_material_fixed', laborKey: 'lighting_labor_fixed' },
     { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
@@ -44,40 +45,140 @@ const QUESTIONS = {
   ],
 }
 
+// Etiquetas cortas para mostrar dentro del plano cuando se tilda cada ítem
+const ITEM_TAGS = {
+  sanitarios: 'SANITARIOS',
+  techo: 'CIELORRASO',
+  revestimientos: 'REVEST.',
+  ducha: 'DUCHA',
+  enchufes: 'ENCHUFES',
+  vanitory: 'VANITORY',
+  griferias: 'GRIFERIA',
+  abertura: 'ABERTURA',
+  ampliar: 'AMPLIACION',
+  muebles: 'MUEBLES',
+  mesadas: 'MESADA',
+  pintar: 'PINTURA',
+  aire: 'A/A',
+  pisos: 'PISO',
+  placar: 'PLACAR',
+  luminaria: 'LUZ',
+}
+
+const PAINT_BUCKET_COVERAGE_M2 = 100
+const PUTTY_BUCKET_COVERAGE_M2 = 60
+const PRIMER_COVERAGE_M2 = 60
+const DEFAULT_ALTURA = '2.6'
+
+function roomFloorM2(room) {
+  return (Number(room.largo) || 0) * (Number(room.ancho) || 0)
+}
+
+function wallAreaM2(room) {
+  const largo = Number(room.largo) || 0
+  const ancho = Number(room.ancho) || 0
+  const height = Number(room.altura) || 0
+  const perimeter = 2 * (largo + ancho)
+  return perimeter * height
+}
+
 function unitsNeeded(m2, coverage) {
   return coverage > 0 ? Math.ceil(m2 / coverage) : 0
 }
 
-function paintCost(m2, priceMap) {
-  const labor = (priceMap.paint_labor_m2 || 0) * m2
-  const paint = unitsNeeded(m2, priceMap.paint_bucket_coverage_m2) * (priceMap.paint_bucket_price || 0)
-  const putty = unitsNeeded(m2, priceMap.putty_bucket_coverage_m2) * (priceMap.putty_bucket_price || 0)
-  const primer = unitsNeeded(m2, priceMap.primer_coverage_m2) * (priceMap.primer_price || 0)
+function paintCost(wallM2, priceMap) {
+  const labor = (priceMap.paint_labor_m2 || 0) * wallM2
+  const paint = unitsNeeded(wallM2, PAINT_BUCKET_COVERAGE_M2) * (priceMap.paint_bucket_price || 0)
+  const putty = unitsNeeded(wallM2, PUTTY_BUCKET_COVERAGE_M2) * (priceMap.putty_bucket_price || 0)
+  const primer = unitsNeeded(wallM2, PRIMER_COVERAGE_M2) * (priceMap.primer_price || 0)
   return labor + paint + putty + primer
 }
 
-function itemCost(q, m2, priceMap) {
-  if (q.compute === 'PAINT') return paintCost(m2, priceMap)
+function itemCost(q, room, priceMap) {
+  if (q.compute === 'PAINT') return paintCost(wallAreaM2(room), priceMap)
   const material = priceMap[q.materialKey] || 0
   const labor = priceMap[q.laborKey] || 0
-  return q.compute === 'M2_SPLIT' ? (material + labor) * m2 : material + labor
+  if (q.compute === 'FIXED_SPLIT') return material + labor
+  const area = q.surface === 'WALL' ? wallAreaM2(room) : roomFloorM2(room)
+  return (material + labor) * area
 }
 
 function emptyRoom() {
-  return { type: null, m2: '', answers: {} }
+  return { type: null, largo: '', ancho: '', altura: DEFAULT_ALTURA, answers: {} }
 }
 
 function roomSubtotal(room, priceMap) {
   const questions = QUESTIONS[room.type] || []
-  const m2 = Number(room.m2) || 0
   return questions.reduce((sum, q) => {
     if (!room.answers[q.key]) return sum
-    return sum + itemCost(q, m2, priceMap)
+    return sum + itemCost(q, room, priceMap)
   }, 0)
+}
+
+function checkedTags(room) {
+  const questions = QUESTIONS[room.type] || []
+  return questions.filter((q) => room.answers[q.key]).map((q) => ITEM_TAGS[q.key] || q.key)
 }
 
 function formatMoney(n) {
   return '$' + Math.round(n).toLocaleString('es-AR')
+}
+
+// Plano ilustrativo: un rectángulo proporcional a largo x ancho, con las etiquetas
+// de lo que se va tildando dentro. No pretende ser un plano arquitectónico real,
+// solo darle al cliente una idea visual de la habitación que está armando.
+function RoomDiagram({ room, tags }) {
+  const largo = Number(room.largo) || 0
+  const ancho = Number(room.ancho) || 0
+  if (largo <= 0 || ancho <= 0) return null
+
+  const maxPx = 320
+  const pxPerM = Math.min(maxPx / largo, maxPx / ancho, 90)
+  const widthPx = Math.max(ancho * pxPerM, 90)
+  const heightPx = Math.max(largo * pxPerM, 90)
+
+  return (
+    <div style={{ marginTop: 28 }}>
+      <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        Plano ilustrativo
+      </label>
+      <div
+        style={{
+          marginTop: 10,
+          width: widthPx,
+          height: heightPx,
+          border: '3px solid var(--black)',
+          background: 'var(--white)',
+          padding: 10,
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignContent: 'flex-start',
+          gap: 6,
+        }}
+      >
+        {tags.map((tag, i) => (
+          <span
+            key={tag + i}
+            style={{
+              border: '1.5px solid var(--black)',
+              background: 'var(--gray-100)',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.03em',
+              padding: '4px 7px',
+              height: 'fit-content',
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <p style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--gray-400)' }}>
+        {ancho}m × {largo}m — plano orientativo, no a escala arquitectónica
+      </p>
+    </div>
+  )
 }
 
 export default function BudgetCalculatorPage() {
@@ -112,7 +213,12 @@ export default function BudgetCalculatorPage() {
   const currentRoom = step >= 1 && step <= roomCount ? rooms[step - 1] : null
   const isLastRoom = step === roomCount
 
-  const canAdvance = currentRoom && currentRoom.type && Number(currentRoom.m2) > 0
+  const canAdvance =
+    currentRoom &&
+    currentRoom.type &&
+    Number(currentRoom.largo) > 0 &&
+    Number(currentRoom.ancho) > 0 &&
+    Number(currentRoom.altura) > 0
 
   const total = prices ? rooms.reduce((sum, r) => sum + roomSubtotal(r, prices), 0) : 0
   const margin = prices?.margin_percent || 0
@@ -185,16 +291,45 @@ export default function BudgetCalculatorPage() {
 
             {currentRoom.type && (
               <>
-                <div className="field" style={{ marginTop: 24, maxWidth: 220 }}>
-                  <label>m² aproximados</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={currentRoom.m2}
-                    onChange={(e) => updateRoom(step - 1, { m2: e.target.value })}
-                    placeholder="Ej: 6"
-                  />
+                <div style={{ display: 'flex', gap: 16, marginTop: 24, flexWrap: 'wrap' }}>
+                  <div className="field" style={{ maxWidth: 160 }}>
+                    <label>Largo (m)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={currentRoom.largo}
+                      onChange={(e) => updateRoom(step - 1, { largo: e.target.value })}
+                      placeholder="Ej: 4"
+                    />
+                  </div>
+                  <div className="field" style={{ maxWidth: 160 }}>
+                    <label>Ancho (m)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={currentRoom.ancho}
+                      onChange={(e) => updateRoom(step - 1, { ancho: e.target.value })}
+                      placeholder="Ej: 3"
+                    />
+                  </div>
+                  <div className="field" style={{ maxWidth: 160 }}>
+                    <label>Altura de techo (m)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={currentRoom.altura}
+                      onChange={(e) => updateRoom(step - 1, { altura: e.target.value })}
+                      placeholder="Ej: 2.6"
+                    />
+                  </div>
                 </div>
+
+                {roomFloorM2(currentRoom) > 0 && (
+                  <RoomDiagram room={currentRoom} tags={checkedTags(currentRoom)} />
+                )}
 
                 <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {QUESTIONS[currentRoom.type].map((q) => (
@@ -243,7 +378,7 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
     .map((r, i) => {
       const label = ROOM_TYPES.find((t) => t.key === r.type)?.label || r.type
       const checked = QUESTIONS[r.type].filter((q) => r.answers[q.key]).map((q) => q.label)
-      return `Habitación ${i + 1} (${label}, ${r.m2}m²): ${checked.length ? checked.join(', ') : 'sin ítems seleccionados'}`
+      return `Habitación ${i + 1} (${label}, ${r.largo}m x ${r.ancho}m = ${roomFloorM2(r)}m²): ${checked.length ? checked.join(', ') : 'sin ítems seleccionados'}`
     })
     .join('\n')
 
@@ -288,7 +423,7 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
           return (
             <div key={i} style={{ paddingBottom: 18, marginBottom: 18, borderBottom: '2px solid var(--gray-200)' }}>
               <strong>
-                Habitación {i + 1} — {label} ({r.m2}m²)
+                Habitación {i + 1} — {label} ({roomFloorM2(r)}m²)
               </strong>
               {checked.length > 0 ? (
                 <ul style={{ marginTop: 8, paddingLeft: 20, color: 'var(--gray-700)', fontSize: '0.9rem' }}>
