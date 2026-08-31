@@ -647,7 +647,6 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
       <div style={{ border: '2px solid var(--black)', padding: 28 }}>
         {rooms.map((r, i) => {
           const label = ROOM_TYPES.find((t) => t.key === r.type)?.label || r.type
-          const subtotal = roomSubtotal(r, prices)
           const checked = QUESTIONS[r.type].filter((q) => r.answers[q.key])
           return (
             <div key={i} style={{ paddingBottom: 18, marginBottom: 18, borderBottom: '2px solid var(--gray-200)' }}>
@@ -663,11 +662,10 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
               ) : (
                 <p style={{ marginTop: 8, color: 'var(--gray-400)', fontSize: '0.9rem' }}>Sin ítems seleccionados</p>
               )}
-              <p style={{ marginTop: 8, fontWeight: 700 }}>{formatMoney(subtotal)}</p>
             </div>
           )
         })}
-        <p style={{ fontSize: '0.85rem', color: 'var(--gray-400)' }}>Subtotal + margen de obra</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--gray-400)' }}>Presupuesto estimado</p>
         <p style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', fontFamily: "'Archivo Black', sans-serif", marginTop: 6 }}>
           {formatMoney(finalTotal)}
         </p>
