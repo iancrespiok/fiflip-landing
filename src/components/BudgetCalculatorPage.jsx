@@ -669,6 +669,14 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
         <p style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', fontFamily: "'Archivo Black', sans-serif", marginTop: 6 }}>
           {formatMoney(finalTotal)}
         </p>
+        <p className="eyebrow" style={{ marginTop: 16 }}>
+          Trabajo llave en mano
+        </p>
+        <p style={{ marginTop: 8, fontSize: '0.9rem', color: 'var(--gray-700)', lineHeight: 1.5 }}>
+          Este valor incluye <strong>materiales, mano de obra</strong> y la{' '}
+          <strong>coordinación y control completo de la obra</strong> de principio a fin — no
+          contratás gremios por separado, nos ocupamos nosotros.
+        </p>
         <p style={{ marginTop: 10, fontSize: '0.85rem', color: 'var(--gray-400)' }}>
           Este es un valor aproximado. El presupuesto final puede variar según relevamiento en el lugar.
         </p>
