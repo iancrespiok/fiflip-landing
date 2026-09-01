@@ -147,7 +147,7 @@ const ICON_POSITIONS = {
 
 function Svg({ children }) {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       {children}
     </svg>
   )
@@ -314,10 +314,16 @@ const ICONS = {
 // Abertura dibujada sobre la pared superior o inferior del plano, como se vería
 // en un corte de planta: dos líneas de pared con el vidrio (ventana) o la hoja
 // corrediza (puerta) cruzando el vano.
+// Glyph de abertura al ras del muro (top:0 / bottom:0, sin desplazamiento
+// vertical), como se vería en el corte de pared de un plano real.
 function WallOpening({ kind, edge }) {
-  const label = kind === 'ventana' ? 'Ventana' : 'Pta. corrediza'
-  const glyph = (
-    <svg viewBox="0 0 100 16" width="76" height="12" style={{ display: 'block' }}>
+  return (
+    <svg
+      viewBox="0 0 100 16"
+      width="76"
+      height="12"
+      style={{ position: 'absolute', [edge]: 0, left: '50%', transform: 'translate(-50%, 0)', zIndex: 2, display: 'block' }}
+    >
       <line x1="2" y1="2" x2="98" y2="2" stroke="var(--black)" strokeWidth="2.5" />
       <line x1="2" y1="14" x2="98" y2="14" stroke="var(--black)" strokeWidth="2.5" />
       {kind === 'ventana' ? (
@@ -329,40 +335,6 @@ function WallOpening({ kind, edge }) {
         </>
       )}
     </svg>
-  )
-  const caption = (
-    <span style={{ fontSize: '0.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', background: 'var(--white)' }}>
-      {label}
-    </span>
-  )
-  // El glyph va al ras del muro (top:0 / bottom:0, sin desplazamiento vertical);
-  // el texto queda del lado de adentro de la habitación.
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        [edge]: 0,
-        left: '50%',
-        transform: 'translate(-50%, 0)',
-        zIndex: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-      }}
-    >
-      {edge === 'top' ? (
-        <>
-          {glyph}
-          {caption}
-        </>
-      ) : (
-        <>
-          {caption}
-          {glyph}
-        </>
-      )}
-    </div>
   )
 }
 
@@ -452,20 +424,10 @@ function RoomDiagram({ room }) {
               left: `${entry.pos.left}%`,
               transform: 'translate(-50%, -50%)',
               zIndex: 1,
-              border: '1.5px solid var(--black)',
-              background: 'var(--white)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-              padding: '5px 6px 4px',
               width: 'max-content',
             }}
           >
             {entry.render ? entry.render() : null}
-            <span style={{ fontSize: '0.55rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-              {entry.label}
-            </span>
           </div>
         ))}
 
