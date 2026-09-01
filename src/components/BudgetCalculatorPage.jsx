@@ -434,7 +434,11 @@ export default function BudgetCalculatorPage() {
   const startRooms = () => {
     const count = Math.min(8, Math.max(1, Number(roomCount) || 1))
     setRoomCount(count)
-    setRooms(Array.from({ length: count }, () => emptyRoom()))
+    setRooms((prev) => {
+      if (prev.length === count) return prev
+      if (prev.length > count) return prev.slice(0, count)
+      return [...prev, ...Array.from({ length: count - prev.length }, () => emptyRoom())]
+    })
     setStep(1)
   }
 
@@ -576,25 +580,23 @@ export default function BudgetCalculatorPage() {
             )}
 
             <div style={{ display: 'flex', gap: 12, marginTop: 36 }}>
-              {step > 1 && (
-                <button className="btn btn-outline" onClick={() => setStep((s) => s - 1)}>
-                  ← Anterior
-                </button>
-              )}
+              <button className="btn btn-outline" onClick={() => setStep((s) => s - 1)}>
+                ← Anterior
+              </button>
               <button className="btn" disabled={!canAdvance} onClick={() => setStep((s) => s + 1)}>
                 {isLastRoom ? 'Ver presupuesto →' : 'Siguiente habitación →'}
               </button>
             </div>
           </div>
         ) : (
-          <BudgetSummary rooms={rooms} prices={prices} total={total} finalTotal={finalTotal} />
+          <BudgetSummary rooms={rooms} prices={prices} total={total} finalTotal={finalTotal} onBack={() => setStep(roomCount)} />
         )}
       </div>
     </div>
   )
 }
 
-function BudgetSummary({ rooms, prices, total, finalTotal }) {
+function BudgetSummary({ rooms, prices, total, finalTotal, onBack }) {
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -641,6 +643,11 @@ function BudgetSummary({ rooms, prices, total, finalTotal }) {
 
   return (
     <div style={{ marginTop: 36 }}>
+      {!sent && (
+        <button className="btn btn-outline" onClick={onBack} style={{ marginBottom: 24 }}>
+          ← Anterior
+        </button>
+      )}
       <div style={{ border: '2px solid var(--black)', padding: 28 }}>
         {rooms.map((r, i) => {
           const label = ROOM_TYPES.find((t) => t.key === r.type)?.label || r.type
