@@ -387,32 +387,31 @@ function RoomDiagram({ room }) {
           overflow: 'hidden',
         }}
       >
-        {hasRevestimientos && (
+        {hasTecho && (
+          // Luces dicroicas repartidas por todo el cielorraso: una trama de puntos
+          // sutil de fondo, en vez de íconos sueltos que compiten por lugar.
           <div
             style={{
               position: 'absolute',
-              inset: 10,
-              border: '2.5px solid var(--gray-400)',
+              inset: 0,
+              backgroundImage: 'radial-gradient(circle, var(--black) 1.3px, transparent 1.4px)',
+              backgroundSize: '30px 30px',
+              backgroundPosition: '15px 15px',
+              opacity: 0.3,
               pointerEvents: 'none',
             }}
           />
         )}
 
-        {hasTecho && (
-          <div style={{ position: 'absolute', top: 28, left: 0, right: 0, display: 'flex', justifyContent: 'space-evenly' }}>
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                style={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: '50%',
-                  background: 'var(--black)',
-                  boxShadow: '0 0 6px 2px rgba(0,0,0,0.25)',
-                }}
-              />
-            ))}
-          </div>
+        {hasRevestimientos && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 10,
+              border: '2px dashed var(--gray-400)',
+              pointerEvents: 'none',
+            }}
+          />
         )}
 
         {iconEntries.map((entry) => (
