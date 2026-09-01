@@ -124,6 +124,27 @@ function formatMoney(n) {
 // Ítems que se dibujan como capas sobre el plano en vez de como íconos sueltos
 const OVERLAY_KEYS = ['techo', 'pisos', 'revestimientos']
 
+// Aberturas: se dibujan sobre la pared del plano (arriba/abajo), no como ícono suelto
+const WALL_KEYS = ['abertura', 'puerta_corrediza']
+
+// Dónde cae cada ícono dentro del plano (top/left en %), para que se ubique
+// donde ese elemento realmente iría (contra una pared, en una esquina) en vez
+// de amontonarse en el centro. Los índices se corresponden con ICONS[key].
+const ICON_POSITIONS = {
+  sanitarios: [{ top: 18, left: 20 }, { top: 18, left: 42 }],
+  ducha: [{ top: 18, left: 80 }],
+  enchufes: [{ top: 45, left: 10 }],
+  griferias: [{ top: 45, left: 88 }],
+  vanitory: [{ top: 78, left: 30 }],
+  muebles: [{ top: 30, left: 50 }],
+  ampliar: [{ top: 65, left: 50 }],
+  mesadas: [{ top: 78, left: 30 }],
+  pintar: [{ top: 12, left: 15 }],
+  aire: [{ top: 10, left: 85 }],
+  placar: [{ top: 50, left: 85 }],
+  luminaria: [{ top: 18, left: 50 }],
+}
+
 function Svg({ children }) {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -263,35 +284,6 @@ const ICONS = {
       ),
     },
   ],
-  abertura: [
-    {
-      label: 'Ventana',
-      render: () => (
-        // Vista en planta: corte de muro (líneas superior/inferior) con el vidrio como línea central
-        <Svg>
-          <line x1="2" y1="7" x2="2" y2="17" />
-          <line x1="22" y1="7" x2="22" y2="17" />
-          <line x1="2" y1="7" x2="22" y2="7" />
-          <line x1="2" y1="17" x2="22" y2="17" />
-          <line x1="2" y1="12" x2="22" y2="12" />
-        </Svg>
-      ),
-    },
-  ],
-  puerta_corrediza: [
-    {
-      label: 'Pta. corrediza',
-      render: () => (
-        // Vista en planta: vano en el muro con la hoja corrediza superpuesta al costado y su riel
-        <Svg>
-          <line x1="2" y1="7" x2="22" y2="7" />
-          <line x1="2" y1="17" x2="22" y2="17" />
-          <line x1="2" y1="12" x2="9" y2="12" strokeDasharray="1.5 1.5" />
-          <rect x="9" y="8.5" width="10" height="1.6" fill="var(--black)" stroke="none" />
-        </Svg>
-      ),
-    },
-  ],
   ampliar: [
     {
       label: 'Ampliación',
@@ -319,6 +311,44 @@ const ICONS = {
   ],
 }
 
+// Abertura dibujada sobre la pared superior o inferior del plano, como se vería
+// en un corte de planta: dos líneas de pared con el vidrio (ventana) o la hoja
+// corrediza (puerta) cruzando el vano.
+function WallOpening({ kind, edge }) {
+  const label = kind === 'ventana' ? 'Ventana' : 'Pta. corrediza'
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        [edge]: '2%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+      }}
+    >
+      <svg viewBox="0 0 100 16" width="76" height="12">
+        <line x1="2" y1="2" x2="98" y2="2" stroke="var(--black)" strokeWidth="2.5" />
+        <line x1="2" y1="14" x2="98" y2="14" stroke="var(--black)" strokeWidth="2.5" />
+        {kind === 'ventana' ? (
+          <line x1="2" y1="8" x2="98" y2="8" stroke="var(--black)" strokeWidth="1.6" />
+        ) : (
+          <>
+            <line x1="2" y1="8" x2="45" y2="8" stroke="var(--black)" strokeWidth="1.2" strokeDasharray="3 2" />
+            <rect x="45" y="4" width="50" height="8" fill="var(--black)" />
+          </>
+        )}
+      </svg>
+      <span style={{ fontSize: '0.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', background: 'var(--white)' }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
 // Plano ilustrativo: un rectángulo proporcional a largo x ancho. Los ítems que
 // cubren toda una superficie (piso, revestimientos, luces de techo) se dibujan
 // como capas sobre el plano; el resto aparece como un ícono representativo.
@@ -333,9 +363,17 @@ function RoomDiagram({ room }) {
   const hasTecho = checkedKeys.includes('techo')
   const hasPisos = checkedKeys.includes('pisos')
   const hasRevestimientos = checkedKeys.includes('revestimientos')
+  const hasVentana = checkedKeys.includes('abertura')
+  const hasPuertaCorrediza = checkedKeys.includes('puerta_corrediza')
   const iconEntries = checkedKeys
-    .filter((k) => !OVERLAY_KEYS.includes(k))
-    .flatMap((k) => (ICONS[k] || [{ label: ITEM_TAGS[k] || k, render: null }]).map((entry, i) => ({ ...entry, mapKey: `${k}-${i}` })))
+    .filter((k) => !OVERLAY_KEYS.includes(k) && !WALL_KEYS.includes(k))
+    .flatMap((k) =>
+      (ICONS[k] || [{ label: ITEM_TAGS[k] || k, render: null }]).map((entry, i) => ({
+        ...entry,
+        mapKey: `${k}-${i}`,
+        pos: (ICON_POSITIONS[k] && ICON_POSITIONS[k][i]) || { top: 50, left: 50 },
+      }))
+    )
 
   const maxPx = 320
   const pxPerM = Math.min(maxPx / largo, maxPx / ancho, 90)
@@ -388,39 +426,34 @@ function RoomDiagram({ room }) {
           </div>
         )}
 
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            height: '100%',
-            padding: 10,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignContent: hasTecho ? 'center' : 'flex-start',
-            gap: 6,
-          }}
-        >
-          {iconEntries.map((entry) => (
-            <div
-              key={entry.mapKey}
-              style={{
-                border: '1.5px solid var(--black)',
-                background: 'var(--white)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2,
-                padding: '5px 6px 4px',
-                height: 'fit-content',
-              }}
-            >
-              {entry.render ? entry.render() : null}
-              <span style={{ fontSize: '0.55rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                {entry.label}
-              </span>
-            </div>
-          ))}
-        </div>
+        {iconEntries.map((entry) => (
+          <div
+            key={entry.mapKey}
+            style={{
+              position: 'absolute',
+              top: `${entry.pos.top}%`,
+              left: `${entry.pos.left}%`,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1,
+              border: '1.5px solid var(--black)',
+              background: 'var(--white)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              padding: '5px 6px 4px',
+              width: 'max-content',
+            }}
+          >
+            {entry.render ? entry.render() : null}
+            <span style={{ fontSize: '0.55rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+              {entry.label}
+            </span>
+          </div>
+        ))}
+
+        {hasVentana && <WallOpening kind="ventana" edge="top" />}
+        {hasPuertaCorrediza && <WallOpening kind="puerta_corrediza" edge="bottom" />}
       </div>
       <p style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--gray-400)' }}>
         {ancho}m × {largo}m — plano orientativo, no a escala arquitectónica
