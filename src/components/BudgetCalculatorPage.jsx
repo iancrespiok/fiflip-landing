@@ -169,10 +169,11 @@ const ICONS = {
     {
       label: 'Vanitory',
       render: () => (
+        // Vista en planta: mesada (rectángulo) + bacha (óvalo inscripto) + grifería (punto trasero)
         <Svg>
-          <rect x="4" y="2" width="16" height="7" />
-          <ellipse cx="12" cy="13" rx="6" ry="3" />
-          <rect x="2" y="15" width="20" height="4" />
+          <rect x="3" y="4" width="18" height="16" rx="1" />
+          <ellipse cx="12" cy="13" rx="6" ry="4.5" />
+          <circle cx="12" cy="7" r="1" fill="var(--black)" stroke="none" />
         </Svg>
       ),
     },
@@ -266,10 +267,13 @@ const ICONS = {
     {
       label: 'Ventana',
       render: () => (
+        // Vista en planta: corte de muro (líneas superior/inferior) con el vidrio como línea central
         <Svg>
-          <rect x="3" y="3" width="18" height="18" />
-          <line x1="12" y1="3" x2="12" y2="21" />
-          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="2" y1="7" x2="2" y2="17" />
+          <line x1="22" y1="7" x2="22" y2="17" />
+          <line x1="2" y1="7" x2="22" y2="7" />
+          <line x1="2" y1="17" x2="22" y2="17" />
+          <line x1="2" y1="12" x2="22" y2="12" />
         </Svg>
       ),
     },
@@ -278,10 +282,12 @@ const ICONS = {
     {
       label: 'Pta. corrediza',
       render: () => (
+        // Vista en planta: vano en el muro con la hoja corrediza superpuesta al costado y su riel
         <Svg>
-          <rect x="2" y="3" width="20" height="18" />
-          <line x1="12" y1="3" x2="12" y2="21" strokeDasharray="2 2" />
-          <path d="M15 12h5M18 9l3 3-3 3" />
+          <line x1="2" y1="7" x2="22" y2="7" />
+          <line x1="2" y1="17" x2="22" y2="17" />
+          <line x1="2" y1="12" x2="9" y2="12" strokeDasharray="1.5 1.5" />
+          <rect x="9" y="8.5" width="10" height="1.6" fill="var(--black)" stroke="none" />
         </Svg>
       ),
     },
