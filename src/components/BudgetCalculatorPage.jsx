@@ -14,25 +14,26 @@ const ROOM_TYPES = [
 // 'M2_SPLIT' (material + mano de obra, ambos por m²), 'FIXED_SPLIT' (material + mano de obra, fijos)
 const QUESTIONS = {
   BANO: [
-    { key: 'sanitarios', label: 'Cambiar sanitarios', compute: 'FIXED_SPLIT', materialKey: 'sanitary_material_fixed', laborKey: 'sanitary_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
-    { key: 'revestimientos', label: 'Cambiar los revestimientos', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
-    { key: 'ducha', label: 'Cambiar bañadera por ducha con mampara de vidrio', compute: 'FIXED_SPLIT', materialKey: 'shower_glass_material_fixed', laborKey: 'shower_glass_labor_fixed' },
-    { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
-    { key: 'vanitory', label: 'Cambiar vanitory con espejo nuevo', compute: 'FIXED_SPLIT', materialKey: 'vanity_mirror_material_fixed', laborKey: 'vanity_mirror_labor_fixed' },
-    { key: 'griferias', label: 'Cambiar griferías', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
+    { key: 'sanitarios', label: 'Cambiar sanitarios (inodoro y/o bidet)', compute: 'FIXED_SPLIT', materialKey: 'sanitary_material_fixed', laborKey: 'sanitary_labor_fixed' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'revestimientos', label: 'Cambiar los revestimientos (cerámicos de piso y pared)', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'ducha', label: 'Cambiar bañadera por sector de ducha con mampara de vidrio', compute: 'FIXED_SPLIT', materialKey: 'shower_glass_material_fixed', laborKey: 'shower_glass_labor_fixed' },
+    { key: 'enchufes', label: 'Cambiar tapas de los enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
+    { key: 'vanitory', label: 'Cambiar mueble vanitory y espejo', compute: 'FIXED_SPLIT', materialKey: 'vanity_mirror_material_fixed', laborKey: 'vanity_mirror_labor_fixed' },
+    { key: 'griferias', label: 'Cambiar griferías de vanitory, bidet y cuadro de ducha', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
+    { key: 'abertura', label: 'Cambiar ventana (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
+    { key: 'puerta_corrediza', label: 'Cambiar puerta abatible por puerta corrediza', compute: 'FIXED_SPLIT', materialKey: 'sliding_door_material_fixed', laborKey: 'sliding_door_labor_fixed' },
   ],
   COCINA: [
-    { key: 'ampliar', label: 'Ampliar el espacio actual', compute: 'FIXED_SPLIT', materialKey: 'kitchen_expand_material_fixed', laborKey: 'kitchen_expand_labor_fixed' },
-    { key: 'muebles', label: 'Cambiar muebles', compute: 'FIXED_SPLIT', materialKey: 'kitchen_furniture_material_fixed', laborKey: 'kitchen_furniture_labor_fixed' },
-    { key: 'revestimientos', label: 'Cambiar revestimientos', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
-    { key: 'griferias', label: 'Cambiar griferías', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
-    { key: 'mesadas', label: 'Cambiar mesadas', compute: 'FIXED_SPLIT', materialKey: 'countertop_material_fixed', laborKey: 'countertop_labor_fixed' },
-    { key: 'enchufes', label: 'Cambiar enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
-    { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
+    { key: 'ampliar', label: 'Ampliar el espacio actual (integración con living o ampliación de espacio de mesada)', compute: 'FIXED_SPLIT', materialKey: 'kitchen_expand_material_fixed', laborKey: 'kitchen_expand_labor_fixed' },
+    { key: 'muebles', label: 'Cambiar muebles bajo mesada y alacenas', compute: 'FIXED_SPLIT', materialKey: 'kitchen_furniture_material_fixed', laborKey: 'kitchen_furniture_labor_fixed' },
+    { key: 'revestimientos', label: 'Cambiar revestimientos (cerámicos pared y piso)', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
+    { key: 'griferias', label: 'Cambiar grifería', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
+    { key: 'mesadas', label: 'Cambiar mesada', compute: 'FIXED_SPLIT', materialKey: 'countertop_material_fixed', laborKey: 'countertop_labor_fixed' },
+    { key: 'enchufes', label: 'Cambiar tapas de los enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
+    { key: 'pintar', label: 'Pintar paredes y techo', compute: 'PAINT' },
+    { key: 'abertura', label: 'Cambiar ventana (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
     { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
   ],
   HABITACION: [
@@ -54,7 +55,8 @@ const ITEM_TAGS = {
   enchufes: 'ENCHUFES',
   vanitory: 'VANITORY',
   griferias: 'GRIFERIA',
-  abertura: 'ABERTURA',
+  abertura: 'VENTANA',
+  puerta_corrediza: 'CORREDIZA',
   ampliar: 'AMPLIACION',
   muebles: 'MUEBLES',
   mesadas: 'MESADA',
@@ -262,12 +264,24 @@ const ICONS = {
   ],
   abertura: [
     {
-      label: 'Abertura',
+      label: 'Ventana',
       render: () => (
         <Svg>
-          <rect x="3" y="2" width="18" height="20" />
-          <path d="M17 4l-9 2v14l9-2z" strokeDasharray="2 2" />
-          <circle cx="10.5" cy="12" r="0.8" fill="var(--black)" stroke="none" />
+          <rect x="3" y="3" width="18" height="18" />
+          <line x1="12" y1="3" x2="12" y2="21" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+        </Svg>
+      ),
+    },
+  ],
+  puerta_corrediza: [
+    {
+      label: 'Pta. corrediza',
+      render: () => (
+        <Svg>
+          <rect x="2" y="3" width="20" height="18" />
+          <line x1="12" y1="3" x2="12" y2="21" strokeDasharray="2 2" />
+          <path d="M15 12h5M18 9l3 3-3 3" />
         </Svg>
       ),
     },
@@ -561,20 +575,48 @@ export default function BudgetCalculatorPage() {
 
                 {roomFloorM2(currentRoom) > 0 && <RoomDiagram room={currentRoom} />}
 
-                <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {QUESTIONS[currentRoom.type].map((q) => (
-                    <label key={q.key} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!currentRoom.answers[q.key]}
-                        onChange={(e) =>
-                          updateRoom(step - 1, { answers: { ...currentRoom.answers, [q.key]: e.target.checked } })
-                        }
-                        style={{ width: 20, height: 20 }}
-                      />
-                      <span>{q.label}</span>
-                    </label>
-                  ))}
+                <div style={{ marginTop: 28 }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      cursor: 'pointer',
+                      paddingBottom: 14,
+                      marginBottom: 14,
+                      borderBottom: '2px solid var(--black)',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={QUESTIONS[currentRoom.type].every((q) => currentRoom.answers[q.key])}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        const answers = {}
+                        QUESTIONS[currentRoom.type].forEach((q) => (answers[q.key] = checked))
+                        updateRoom(step - 1, { answers })
+                      }}
+                      style={{ width: 20, height: 20 }}
+                    />
+                    <span style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.04em' }}>
+                      Reforma integral (seleccionar todo)
+                    </span>
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {QUESTIONS[currentRoom.type].map((q) => (
+                      <label key={q.key} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!currentRoom.answers[q.key]}
+                          onChange={(e) =>
+                            updateRoom(step - 1, { answers: { ...currentRoom.answers, [q.key]: e.target.checked } })
+                          }
+                          style={{ width: 20, height: 20 }}
+                        />
+                        <span>{q.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
