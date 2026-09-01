@@ -316,13 +316,34 @@ const ICONS = {
 // corrediza (puerta) cruzando el vano.
 function WallOpening({ kind, edge }) {
   const label = kind === 'ventana' ? 'Ventana' : 'Pta. corrediza'
+  const glyph = (
+    <svg viewBox="0 0 100 16" width="76" height="12" style={{ display: 'block' }}>
+      <line x1="2" y1="2" x2="98" y2="2" stroke="var(--black)" strokeWidth="2.5" />
+      <line x1="2" y1="14" x2="98" y2="14" stroke="var(--black)" strokeWidth="2.5" />
+      {kind === 'ventana' ? (
+        <line x1="2" y1="8" x2="98" y2="8" stroke="var(--black)" strokeWidth="1.6" />
+      ) : (
+        <>
+          <line x1="2" y1="8" x2="45" y2="8" stroke="var(--black)" strokeWidth="1.2" strokeDasharray="3 2" />
+          <rect x="45" y="4" width="50" height="8" fill="var(--black)" />
+        </>
+      )}
+    </svg>
+  )
+  const caption = (
+    <span style={{ fontSize: '0.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', background: 'var(--white)' }}>
+      {label}
+    </span>
+  )
+  // El glyph va al ras del muro (top:0 / bottom:0, sin desplazamiento vertical);
+  // el texto queda del lado de adentro de la habitación.
   return (
     <div
       style={{
         position: 'absolute',
-        [edge]: '2%',
+        [edge]: 0,
         left: '50%',
-        transform: 'translate(-50%, -50%)',
+        transform: 'translate(-50%, 0)',
         zIndex: 2,
         display: 'flex',
         flexDirection: 'column',
@@ -330,21 +351,17 @@ function WallOpening({ kind, edge }) {
         gap: 2,
       }}
     >
-      <svg viewBox="0 0 100 16" width="76" height="12">
-        <line x1="2" y1="2" x2="98" y2="2" stroke="var(--black)" strokeWidth="2.5" />
-        <line x1="2" y1="14" x2="98" y2="14" stroke="var(--black)" strokeWidth="2.5" />
-        {kind === 'ventana' ? (
-          <line x1="2" y1="8" x2="98" y2="8" stroke="var(--black)" strokeWidth="1.6" />
-        ) : (
-          <>
-            <line x1="2" y1="8" x2="45" y2="8" stroke="var(--black)" strokeWidth="1.2" strokeDasharray="3 2" />
-            <rect x="45" y="4" width="50" height="8" fill="var(--black)" />
-          </>
-        )}
-      </svg>
-      <span style={{ fontSize: '0.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', background: 'var(--white)' }}>
-        {label}
-      </span>
+      {edge === 'top' ? (
+        <>
+          {glyph}
+          {caption}
+        </>
+      ) : (
+        <>
+          {caption}
+          {glyph}
+        </>
+      )}
     </div>
   )
 }
