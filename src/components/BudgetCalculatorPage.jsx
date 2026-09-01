@@ -131,23 +131,24 @@ const WALL_KEYS = ['abertura', 'puerta_corrediza']
 // donde ese elemento realmente iría (contra una pared, en una esquina) en vez
 // de amontonarse en el centro. Los índices se corresponden con ICONS[key].
 const ICON_POSITIONS = {
-  sanitarios: [{ top: 23, left: 20 }, { top: 23, left: 42 }],
-  ducha: [{ top: 23, left: 80 }],
+  sanitarios: [{ top: 16, left: 20 }, { top: 16, left: 42 }],
+  ducha: [{ top: 16, left: 80 }],
   enchufes: [{ top: 45, left: 10 }],
-  griferias: [{ top: 45, left: 88 }],
-  vanitory: [{ top: 78, left: 30 }],
+  // La grifería se dibuja pegada al vanitory/mesada (misma fila), no en la pared opuesta.
+  griferias: [{ top: 88, left: 46 }],
+  vanitory: [{ top: 88, left: 28 }],
   muebles: [{ top: 30, left: 50 }],
   ampliar: [{ top: 65, left: 50 }],
-  mesadas: [{ top: 78, left: 30 }],
+  mesadas: [{ top: 88, left: 28 }],
   pintar: [{ top: 12, left: 15 }],
   aire: [{ top: 10, left: 85 }],
   placar: [{ top: 50, left: 85 }],
   luminaria: [{ top: 18, left: 50 }],
 }
 
-function Svg({ children }) {
+function Svg({ children, size = 26 }) {
   return (
-    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       {children}
     </svg>
   )
@@ -158,7 +159,7 @@ const ICONS = {
     {
       label: 'Inodoro',
       render: () => (
-        <Svg>
+        <Svg size={36}>
           <rect x="7" y="2" width="10" height="5" rx="1" />
           <path d="M6 9h12a1 1 0 0 1 1 1v3a7 6 0 0 1-14 0v-3a1 1 0 0 1 1-1z" />
         </Svg>
@@ -167,7 +168,7 @@ const ICONS = {
     {
       label: 'Bidet',
       render: () => (
-        <Svg>
+        <Svg size={36}>
           <path d="M6 8h12a1 1 0 0 1 1 1v4a7 6 0 0 1-14 0v-4a1 1 0 0 1 1-1z" />
           <circle cx="12" cy="6" r="1.3" fill="var(--black)" stroke="none" />
         </Svg>
@@ -190,11 +191,11 @@ const ICONS = {
     {
       label: 'Vanitory',
       render: () => (
-        // Vista en planta: mesada (rectángulo) + bacha (óvalo inscripto) + grifería (punto trasero)
-        <Svg>
+        // Vista en planta: mesada (rectángulo) + bacha (óvalo inscripto). La grifería se
+        // dibuja aparte, sobre la mesada, como su propio ícono cuando está tildada.
+        <Svg size={36}>
           <rect x="3" y="4" width="18" height="16" rx="1" />
           <ellipse cx="12" cy="13" rx="6" ry="4.5" />
-          <circle cx="12" cy="7" r="1" fill="var(--black)" stroke="none" />
         </Svg>
       ),
     },
@@ -203,9 +204,12 @@ const ICONS = {
     {
       label: 'Grifería',
       render: () => (
-        <Svg>
-          <path d="M6 20v-9a6 6 0 0 1 12 0v3" />
-          <line x1="18" y1="14" x2="18" y2="17" />
+        // Grifo visto desde arriba: cuerpo + canilla + mando — pensado para apoyarse
+        // sobre la mesada del vanitory/mesada, no como pieza aparte contra la pared.
+        <Svg size={18}>
+          <circle cx="12" cy="16" r="2.2" />
+          <path d="M12 14V6" />
+          <path d="M8 6h8" />
         </Svg>
       ),
     },
