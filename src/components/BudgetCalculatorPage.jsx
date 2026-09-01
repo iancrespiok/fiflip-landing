@@ -410,7 +410,7 @@ function RoomDiagram({ room }) {
         )}
 
         {hasTecho && (
-          <div style={{ position: 'absolute', top: 10, left: 0, right: 0, display: 'flex', justifyContent: 'space-evenly' }}>
+          <div style={{ position: 'absolute', top: 28, left: 0, right: 0, display: 'flex', justifyContent: 'space-evenly' }}>
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
