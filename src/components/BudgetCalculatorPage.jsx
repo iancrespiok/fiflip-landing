@@ -131,8 +131,8 @@ const WALL_KEYS = ['abertura', 'puerta_corrediza']
 // donde ese elemento realmente iría (contra una pared, en una esquina) en vez
 // de amontonarse en el centro. Los índices se corresponden con ICONS[key].
 const ICON_POSITIONS = {
-  sanitarios: [{ top: 18, left: 20 }, { top: 18, left: 42 }],
-  ducha: [{ top: 18, left: 80 }],
+  sanitarios: [{ top: 23, left: 20 }, { top: 23, left: 42 }],
+  ducha: [{ top: 23, left: 80 }],
   enchufes: [{ top: 45, left: 10 }],
   griferias: [{ top: 45, left: 88 }],
   vanitory: [{ top: 78, left: 30 }],
