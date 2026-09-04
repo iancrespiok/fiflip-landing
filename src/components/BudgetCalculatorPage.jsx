@@ -10,39 +10,39 @@ const ROOM_TYPES = [
   { key: 'HABITACION', label: 'Habitación' },
 ]
 
-// compute: 'PAINT' (mano de obra por m² + materiales por rendimiento),
-// 'M2_SPLIT' (material + mano de obra, ambos por m²), 'FIXED_SPLIT' (material + mano de obra, fijos)
+// El precio de cada ítem (y la fórmula: fijo, por m² de pared/piso, o pintura)
+// se calcula en el backend — acá solo queda lo necesario para la UI.
 const QUESTIONS = {
   BANO: [
-    { key: 'sanitarios', label: 'Cambiar sanitarios (inodoro y/o bidet)', compute: 'FIXED_SPLIT', materialKey: 'sanitary_material_fixed', laborKey: 'sanitary_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
-    { key: 'revestimientos', label: 'Cambiar los revestimientos (cerámicos de piso y pared)', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
-    { key: 'ducha', label: 'Cambiar bañadera por sector de ducha con mampara de vidrio', compute: 'FIXED_SPLIT', materialKey: 'shower_glass_material_fixed', laborKey: 'shower_glass_labor_fixed' },
-    { key: 'enchufes', label: 'Cambiar tapas de los enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
-    { key: 'vanitory', label: 'Cambiar mueble vanitory y espejo', compute: 'FIXED_SPLIT', materialKey: 'vanity_mirror_material_fixed', laborKey: 'vanity_mirror_labor_fixed' },
-    { key: 'griferias', label: 'Cambiar griferías de vanitory, bidet y cuadro de ducha', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
-    { key: 'abertura', label: 'Cambiar ventana (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
-    { key: 'puerta_corrediza', label: 'Cambiar puerta abatible por puerta corrediza', compute: 'FIXED_SPLIT', materialKey: 'sliding_door_material_fixed', laborKey: 'sliding_door_labor_fixed' },
+    { key: 'sanitarios', label: 'Cambiar sanitarios (inodoro y/o bidet)' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas' },
+    { key: 'revestimientos', label: 'Cambiar los revestimientos (cerámicos de piso y pared)' },
+    { key: 'ducha', label: 'Cambiar bañadera por sector de ducha con mampara de vidrio' },
+    { key: 'enchufes', label: 'Cambiar tapas de los enchufes' },
+    { key: 'vanitory', label: 'Cambiar mueble vanitory y espejo' },
+    { key: 'griferias', label: 'Cambiar griferías de vanitory, bidet y cuadro de ducha' },
+    { key: 'abertura', label: 'Cambiar ventana (si tiene)' },
+    { key: 'puerta_corrediza', label: 'Cambiar puerta abatible por puerta corrediza' },
   ],
   COCINA: [
-    { key: 'ampliar', label: 'Ampliar el espacio actual (integración con living o ampliación de espacio de mesada)', compute: 'FIXED_SPLIT', materialKey: 'kitchen_expand_material_fixed', laborKey: 'kitchen_expand_labor_fixed' },
-    { key: 'muebles', label: 'Cambiar muebles bajo mesada y alacenas', compute: 'FIXED_SPLIT', materialKey: 'kitchen_furniture_material_fixed', laborKey: 'kitchen_furniture_labor_fixed' },
-    { key: 'revestimientos', label: 'Cambiar revestimientos (cerámicos pared y piso)', compute: 'M2_SPLIT', surface: 'WALL', materialKey: 'wall_covering_material_m2', laborKey: 'wall_covering_labor_m2' },
-    { key: 'griferias', label: 'Cambiar grifería', compute: 'FIXED_SPLIT', materialKey: 'faucet_material_fixed', laborKey: 'faucet_labor_fixed' },
-    { key: 'mesadas', label: 'Cambiar mesada', compute: 'FIXED_SPLIT', materialKey: 'countertop_material_fixed', laborKey: 'countertop_labor_fixed' },
-    { key: 'enchufes', label: 'Cambiar tapas de los enchufes', compute: 'FIXED_SPLIT', materialKey: 'outlets_material_fixed', laborKey: 'outlets_labor_fixed' },
-    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'ceiling_gypsum_material_m2', laborKey: 'ceiling_gypsum_labor_m2' },
-    { key: 'pintar', label: 'Pintar paredes y techo', compute: 'PAINT' },
-    { key: 'abertura', label: 'Cambiar ventana (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
-    { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
+    { key: 'ampliar', label: 'Ampliar el espacio actual (integración con living o ampliación de espacio de mesada)' },
+    { key: 'muebles', label: 'Cambiar muebles bajo mesada y alacenas' },
+    { key: 'revestimientos', label: 'Cambiar revestimientos (cerámicos pared y piso)' },
+    { key: 'griferias', label: 'Cambiar grifería' },
+    { key: 'mesadas', label: 'Cambiar mesada' },
+    { key: 'enchufes', label: 'Cambiar tapas de los enchufes' },
+    { key: 'techo', label: 'Bajar el techo con placas de yeso y colocar luces dicroicas' },
+    { key: 'pintar', label: 'Pintar paredes y techo' },
+    { key: 'abertura', label: 'Cambiar ventana (si tiene)' },
+    { key: 'aire', label: 'Colocar aire acondicionado' },
   ],
   HABITACION: [
-    { key: 'pintar', label: 'Pintar', compute: 'PAINT' },
-    { key: 'pisos', label: 'Cambiar pisos', compute: 'M2_SPLIT', surface: 'FLOOR', materialKey: 'floor_material_m2', laborKey: 'floor_labor_m2' },
-    { key: 'placar', label: 'Si tiene placar, cambiar las puertas', compute: 'FIXED_SPLIT', materialKey: 'closet_doors_material_fixed', laborKey: 'closet_doors_labor_fixed' },
-    { key: 'luminaria', label: 'Cambiar luminaria', compute: 'FIXED_SPLIT', materialKey: 'lighting_material_fixed', laborKey: 'lighting_labor_fixed' },
-    { key: 'aire', label: 'Colocar aire acondicionado', compute: 'FIXED_SPLIT', materialKey: 'ac_material_fixed', laborKey: 'ac_labor_fixed' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)', compute: 'FIXED_SPLIT', materialKey: 'door_window_material_fixed', laborKey: 'door_window_labor_fixed' },
+    { key: 'pintar', label: 'Pintar' },
+    { key: 'pisos', label: 'Cambiar pisos' },
+    { key: 'placar', label: 'Si tiene placar, cambiar las puertas' },
+    { key: 'luminaria', label: 'Cambiar luminaria' },
+    { key: 'aire', label: 'Colocar aire acondicionado' },
+    { key: 'abertura', label: 'Cambiar abertura (si tiene)' },
   ],
 }
 
@@ -67,54 +67,14 @@ const ITEM_TAGS = {
   luminaria: 'LUZ',
 }
 
-const PAINT_BUCKET_COVERAGE_M2 = 100
-const PUTTY_BUCKET_COVERAGE_M2 = 60
-const PRIMER_COVERAGE_M2 = 60
 const DEFAULT_ALTURA = '2.6'
 
 function roomFloorM2(room) {
   return (Number(room.largo) || 0) * (Number(room.ancho) || 0)
 }
 
-function wallAreaM2(room) {
-  const largo = Number(room.largo) || 0
-  const ancho = Number(room.ancho) || 0
-  const height = Number(room.altura) || 0
-  const perimeter = 2 * (largo + ancho)
-  return perimeter * height
-}
-
-function unitsNeeded(m2, coverage) {
-  return coverage > 0 ? Math.ceil(m2 / coverage) : 0
-}
-
-function paintCost(wallM2, priceMap) {
-  const labor = (priceMap.paint_labor_m2 || 0) * wallM2
-  const paint = unitsNeeded(wallM2, PAINT_BUCKET_COVERAGE_M2) * (priceMap.paint_bucket_price || 0)
-  const putty = unitsNeeded(wallM2, PUTTY_BUCKET_COVERAGE_M2) * (priceMap.putty_bucket_price || 0)
-  const primer = unitsNeeded(wallM2, PRIMER_COVERAGE_M2) * (priceMap.primer_price || 0)
-  return labor + paint + putty + primer
-}
-
-function itemCost(q, room, priceMap) {
-  if (q.compute === 'PAINT') return paintCost(wallAreaM2(room), priceMap)
-  const material = priceMap[q.materialKey] || 0
-  const labor = priceMap[q.laborKey] || 0
-  if (q.compute === 'FIXED_SPLIT') return material + labor
-  const area = q.surface === 'WALL' ? wallAreaM2(room) : roomFloorM2(room)
-  return (material + labor) * area
-}
-
 function emptyRoom() {
   return { type: null, largo: '', ancho: '', altura: DEFAULT_ALTURA, answers: {} }
-}
-
-function roomSubtotal(room, priceMap) {
-  const questions = QUESTIONS[room.type] || []
-  return questions.reduce((sum, q) => {
-    if (!room.answers[q.key]) return sum
-    return sum + itemCost(q, room, priceMap)
-  }, 0)
 }
 
 function formatMoney(n) {
@@ -445,21 +405,15 @@ function RoomDiagram({ room }) {
 }
 
 export default function BudgetCalculatorPage() {
-  const [prices, setPrices] = useState(null)
   const [step, setStep] = useState(0) // 0 = cuántas habitaciones, 1..N = cada habitación, N+1 = resumen
   const [roomCount, setRoomCount] = useState(1)
   const [rooms, setRooms] = useState([emptyRoom()])
+  const [finalTotal, setFinalTotal] = useState(null)
+  const [calculating, setCalculating] = useState(false)
+  const [calcError, setCalcError] = useState('')
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    fetch(`${API_URL}/api/budget/pricing`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((items) => {
-        const map = {}
-        items.forEach((i) => (map[i.key] = i.price))
-        setPrices(map)
-      })
-      .catch(() => setPrices({}))
   }, [])
 
   const updateRoom = (index, patch) => {
@@ -487,9 +441,33 @@ export default function BudgetCalculatorPage() {
     Number(currentRoom.ancho) > 0 &&
     Number(currentRoom.altura) > 0
 
-  const total = prices ? rooms.reduce((sum, r) => sum + roomSubtotal(r, prices), 0) : 0
-  const margin = prices?.margin_percent || 0
-  const finalTotal = total * (1 + margin / 100)
+  const handleSeePresupuesto = async () => {
+    setCalcError('')
+    setCalculating(true)
+    try {
+      const res = await fetch(`${API_URL}/api/budget/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rooms: rooms.map((r) => ({
+            type: r.type,
+            largo: Number(r.largo),
+            ancho: Number(r.ancho),
+            altura: Number(r.altura),
+            itemKeys: Object.keys(r.answers).filter((k) => r.answers[k]),
+          })),
+        }),
+      })
+      if (!res.ok) throw new Error('calculate failed')
+      const data = await res.json()
+      setFinalTotal(data.total)
+      setStep((s) => s + 1)
+    } catch {
+      setCalcError('No pudimos calcular el presupuesto. Probá de nuevo.')
+    } finally {
+      setCalculating(false)
+    }
+  }
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -512,9 +490,7 @@ export default function BudgetCalculatorPage() {
         <p className="eyebrow">Calculadora</p>
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', marginTop: 16 }}>Presupuesto estimado</h1>
 
-        {!prices ? (
-          <p style={{ marginTop: 30, color: 'var(--gray-400)' }}>Cargando…</p>
-        ) : step === 0 ? (
+        {step === 0 ? (
           <div style={{ marginTop: 36 }}>
             <p style={{ color: 'var(--gray-700)', fontSize: '1.05rem', lineHeight: 1.55 }}>
               ¿Cuántas habitaciones vas a refaccionar?
@@ -642,24 +618,30 @@ export default function BudgetCalculatorPage() {
               </>
             )}
 
+            {calcError && <p style={{ marginTop: 16, color: '#c0392b', fontSize: '0.85rem' }}>{calcError}</p>}
+
             <div style={{ display: 'flex', gap: 12, marginTop: 36 }}>
               <button className="btn btn-outline" onClick={() => setStep((s) => s - 1)}>
                 ← Anterior
               </button>
-              <button className="btn" disabled={!canAdvance} onClick={() => setStep((s) => s + 1)}>
-                {isLastRoom ? 'Ver presupuesto →' : 'Siguiente habitación →'}
+              <button
+                className="btn"
+                disabled={!canAdvance || calculating}
+                onClick={() => (isLastRoom ? handleSeePresupuesto() : setStep((s) => s + 1))}
+              >
+                {isLastRoom ? (calculating ? 'Calculando…' : 'Ver presupuesto →') : 'Siguiente habitación →'}
               </button>
             </div>
           </div>
         ) : (
-          <BudgetSummary rooms={rooms} prices={prices} total={total} finalTotal={finalTotal} onBack={() => setStep(roomCount)} />
+          <BudgetSummary rooms={rooms} finalTotal={finalTotal} onBack={() => setStep(roomCount)} />
         )}
       </div>
     </div>
   )
 }
 
-function BudgetSummary({ rooms, prices, total, finalTotal, onBack }) {
+function BudgetSummary({ rooms, finalTotal, onBack }) {
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
