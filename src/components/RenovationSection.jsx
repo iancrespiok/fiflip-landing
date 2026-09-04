@@ -78,12 +78,16 @@ export default function RenovationSection() {
         }),
       })
       if (!res.ok) throw new Error('request failed')
-      window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo }, { eventID: eventId })
-      const customEventName = CUSTOM_EVENT_BY_TIPO[form.tipo] || 'LeadRenovacionOtro'
-      window.fbq?.('trackCustom', customEventName, { content_category: form.tipo }, { eventID: customEventId })
       setSent(true)
+      try {
+        window.fbq?.('track', 'Lead', { content_name: 'renovacion', content_category: form.tipo }, { eventID: eventId })
+        const customEventName = CUSTOM_EVENT_BY_TIPO[form.tipo] || 'LeadRenovacionOtro'
+        window.fbq?.('trackCustom', customEventName, { content_category: form.tipo }, { eventID: customEventId })
+      } catch {
+        // El tracking no debe afectar la confirmación al usuario: el envío ya se hizo.
+      }
     } catch {
-      setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
+      setError('No pudimos enviar tu solicitud. Probá de nuevo en un momento o escribinos a fiflip.ba@gmail.com.')
     } finally {
       setSending(false)
     }

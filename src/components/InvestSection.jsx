@@ -38,11 +38,15 @@ export default function InvestSection() {
         body: JSON.stringify({ ...form, eventId, customEventId }),
       })
       if (!res.ok) throw new Error('request failed')
-      window.fbq?.('track', 'Lead', { content_name: 'inversion' }, { eventID: eventId })
-      window.fbq?.('trackCustom', 'LeadInversion', {}, { eventID: customEventId })
       setSent(true)
+      try {
+        window.fbq?.('track', 'Lead', { content_name: 'inversion' }, { eventID: eventId })
+        window.fbq?.('trackCustom', 'LeadInversion', {}, { eventID: customEventId })
+      } catch {
+        // El tracking no debe afectar la confirmación al usuario: el envío ya se hizo.
+      }
     } catch {
-      setError('No pudimos enviar tu consulta. Probá de nuevo en un momento o escribinos a hola@fiflip.realestate.')
+      setError('No pudimos enviar tu consulta. Probá de nuevo en un momento o escribinos a fiflip.ba@gmail.com.')
     } finally {
       setSending(false)
     }
