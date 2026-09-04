@@ -27,12 +27,20 @@ export default function AdminBudgetPricingPage({ token, onLogout }) {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/budget/pricing`)
-      .then((res) => (res.ok ? res.json() : []))
+    fetch(`${API_URL}/api/admin/budget/pricing`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          onLogout()
+          return []
+        }
+        return res.ok ? res.json() : []
+      })
       .then(setItems)
       .catch(() => setError('No pudimos cargar los precios.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token, onLogout])
 
   const updatePrice = (key, value) => {
     setSaved(false)
