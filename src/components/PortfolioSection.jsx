@@ -4,14 +4,14 @@ import { navigate } from '../router.js'
 const API_URL = import.meta.env.VITE_API_URL
 
 const TABS = [
-  { key: 'RENOVATION', label: 'Refacciones' },
   { key: 'FLIP', label: 'Flips' },
+  { key: 'RENOVATION', label: 'Refacciones' },
 ]
 
 export default function PortfolioSection() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('RENOVATION')
+  const [tab, setTab] = useState('FLIP')
 
   useEffect(() => {
     fetch(`${API_URL}/api/projects`)
@@ -31,7 +31,7 @@ export default function PortfolioSection() {
           Proyectos de Fiflip.
         </h2>
         <p style={{ maxWidth: 560, marginTop: 18, color: 'var(--gray-700)', fontSize: '1.05rem', lineHeight: 1.55 }}>
-          Refacciones entregadas y proyectos de flipping, con fotos de antes y después.
+          Proyectos de flipping y refacciones entregadas, con fotos de antes y después.
         </p>
 
         <div className="portfolio-tabs">
