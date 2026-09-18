@@ -8,10 +8,24 @@ const ROOM_TYPES = [
   { key: 'BANO', label: 'Baño' },
   { key: 'COCINA', label: 'Cocina' },
   { key: 'HABITACION', label: 'Habitación' },
+  { key: 'PASILLO', label: 'Pasillo o distribuidor' },
+  { key: 'TERRAZA', label: 'Terraza o patio' },
 ]
+
+const MIN_ROOMS = 1
+const MAX_ROOMS = 8
 
 // El precio de cada ítem (y la fórmula: fijo, por m² de pared/piso, o pintura)
 // se calcula en el backend — acá solo queda lo necesario para la UI.
+const HABITACION_QUESTIONS = [
+  { key: 'pintar', label: 'Pintar' },
+  { key: 'pisos', label: 'Cambiar pisos' },
+  { key: 'placar', label: 'Si tiene placar, cambiar las puertas' },
+  { key: 'luminaria', label: 'Cambiar luminaria' },
+  { key: 'aire', label: 'Colocar aire acondicionado' },
+  { key: 'abertura', label: 'Cambiar abertura (si tiene)' },
+]
+
 const QUESTIONS = {
   BANO: [
     { key: 'sanitarios', label: 'Cambiar sanitarios (inodoro y/o bidet)' },
@@ -36,13 +50,12 @@ const QUESTIONS = {
     { key: 'abertura', label: 'Cambiar ventana (si tiene)' },
     { key: 'aire', label: 'Colocar aire acondicionado' },
   ],
-  HABITACION: [
-    { key: 'pintar', label: 'Pintar' },
-    { key: 'pisos', label: 'Cambiar pisos' },
-    { key: 'placar', label: 'Si tiene placar, cambiar las puertas' },
-    { key: 'luminaria', label: 'Cambiar luminaria' },
-    { key: 'aire', label: 'Colocar aire acondicionado' },
-    { key: 'abertura', label: 'Cambiar abertura (si tiene)' },
+  HABITACION: HABITACION_QUESTIONS,
+  // Un pasillo o distribuidor tiene las mismas opciones que una habitación normal.
+  PASILLO: HABITACION_QUESTIONS,
+  TERRAZA: [
+    { key: 'impermeabilizar', label: 'Impermeabilizar pisos (con membrana)' },
+    { key: 'tanque', label: 'Mover tanque de agua' },
   ],
 }
 
@@ -65,6 +78,8 @@ const ITEM_TAGS = {
   pisos: 'PISO',
   placar: 'PLACAR',
   luminaria: 'LUZ',
+  impermeabilizar: 'IMPERMEAB.',
+  tanque: 'TANQUE',
 }
 
 const DEFAULT_ALTURA = '2.6'
@@ -74,7 +89,26 @@ function roomFloorM2(room) {
 }
 
 function emptyRoom() {
-  return { type: null, largo: '', ancho: '', altura: DEFAULT_ALTURA, answers: {} }
+  return { nombre: '', type: null, largo: '', ancho: '', altura: DEFAULT_ALTURA, answers: {} }
+}
+
+// Botones − / + del selector de cantidad; atenuados y sin hover cuando están en el límite.
+function stepperButtonStyle(disabled) {
+  return { padding: 0, width: 38, height: 38, ...(disabled && { opacity: 0.3, pointerEvents: 'none' }) }
+}
+
+function roomTypeLabel(room) {
+  return ROOM_TYPES.find((t) => t.key === room.type)?.label || room.type
+}
+
+// Nombre que le puso el usuario, o "Habitación N" si lo dejó vacío.
+function roomTitle(room, index) {
+  return room.nombre.trim() || `Habitación ${index + 1}`
+}
+
+// El producto de dos decimales suma ruido de punto flotante (3.3 × 3.6 = 11.879999…).
+function formatM2(n) {
+  return Math.round(n * 100) / 100
 }
 
 function formatMoney(n) {
@@ -82,7 +116,7 @@ function formatMoney(n) {
 }
 
 // Ítems que se dibujan como capas sobre el plano en vez de como íconos sueltos
-const OVERLAY_KEYS = ['techo', 'pisos', 'revestimientos']
+const OVERLAY_KEYS = ['techo', 'pisos', 'revestimientos', 'impermeabilizar']
 
 // Aberturas: se dibujan sobre la pared del plano (arriba/abajo), no como ícono suelto
 const WALL_KEYS = ['abertura', 'puerta_corrediza']
@@ -104,6 +138,7 @@ const ICON_POSITIONS = {
   aire: [{ top: 10, left: 85 }],
   placar: [{ top: 50, left: 85 }],
   luminaria: [{ top: 18, left: 50 }],
+  tanque: [{ top: 24, left: 78 }],
 }
 
 function Svg({ children, size = 26 }) {
@@ -248,6 +283,18 @@ const ICONS = {
       ),
     },
   ],
+  tanque: [
+    {
+      label: 'Tanque de agua',
+      render: () => (
+        // Tanque visto desde arriba: tapa circular con su borde interior.
+        <Svg size={34}>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5.5" />
+        </Svg>
+      ),
+    },
+  ],
   ampliar: [
     {
       label: 'Ampliación',
@@ -316,6 +363,7 @@ function RoomDiagram({ room }) {
   const hasTecho = checkedKeys.includes('techo')
   const hasPisos = checkedKeys.includes('pisos')
   const hasRevestimientos = checkedKeys.includes('revestimientos')
+  const hasImpermeabilizar = checkedKeys.includes('impermeabilizar')
   const hasVentana = checkedKeys.includes('abertura')
   const hasPuertaCorrediza = checkedKeys.includes('puerta_corrediza')
   const iconEntries = checkedKeys
@@ -367,6 +415,21 @@ function RoomDiagram({ room }) {
           />
         )}
 
+        {hasImpermeabilizar && (
+          // Membrana sobre todo el piso: una grilla fina, distinta de la trama diagonal
+          // de "cambiar pisos".
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'repeating-linear-gradient(0deg, var(--gray-400) 0 1px, transparent 1px 14px), repeating-linear-gradient(90deg, var(--gray-400) 0 1px, transparent 1px 14px)',
+              opacity: 0.45,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+
         {hasRevestimientos && (
           <div
             style={{
@@ -406,9 +469,9 @@ function RoomDiagram({ room }) {
 
 export default function BudgetCalculatorPage() {
   const [step, setStep] = useState(0) // 0 = cuántas habitaciones, 1..N = cada habitación, N+1 = resumen
-  const [roomCount, setRoomCount] = useState(1)
+  const [countInput, setCountInput] = useState(1) // lo que se tipea en el paso 0
   const [rooms, setRooms] = useState([emptyRoom()])
-  const [finalTotal, setFinalTotal] = useState(null)
+  const [result, setResult] = useState(null) // { total, roomTotals } devuelto por el backend
   const [calculating, setCalculating] = useState(false)
   const [calcError, setCalcError] = useState('')
 
@@ -420,17 +483,33 @@ export default function BudgetCalculatorPage() {
     setRooms((rs) => rs.map((r, i) => (i === index ? { ...r, ...patch } : r)))
   }
 
-  const startRooms = () => {
-    const count = Math.min(8, Math.max(1, Number(roomCount) || 1))
-    setRoomCount(count)
+  // Agrega habitaciones vacías al final o descarta las últimas hasta llegar a `count`.
+  const resizeRooms = (count) => {
+    setCountInput(count)
     setRooms((prev) => {
       if (prev.length === count) return prev
       if (prev.length > count) return prev.slice(0, count)
       return [...prev, ...Array.from({ length: count - prev.length }, () => emptyRoom())]
     })
+    setStep((s) => Math.min(s, count)) // si estabas en una habitación que se descartó, vuelve a la última
+  }
+
+  const startRooms = () => {
+    resizeRooms(Math.min(MAX_ROOMS, Math.max(MIN_ROOMS, Number(countInput) || MIN_ROOMS)))
     setStep(1)
   }
 
+  const changeRoomCount = (delta) => {
+    const next = rooms.length + delta
+    if (next < MIN_ROOMS || next > MAX_ROOMS) return
+    const dropped = rooms[rooms.length - 1]
+    if (delta < 0 && dropped.type && !confirm(`Se va a quitar "${roomTitle(dropped, rooms.length - 1)}" con todo lo que cargaste. ¿Continuar?`)) {
+      return
+    }
+    resizeRooms(next)
+  }
+
+  const roomCount = rooms.length
   const currentRoom = step >= 1 && step <= roomCount ? rooms[step - 1] : null
   const isLastRoom = step === roomCount
 
@@ -460,7 +539,8 @@ export default function BudgetCalculatorPage() {
       })
       if (!res.ok) throw new Error('calculate failed')
       const data = await res.json()
-      setFinalTotal(data.total)
+      if (!Array.isArray(data.rooms) || data.rooms.length !== rooms.length) throw new Error('unexpected response')
+      setResult({ total: data.total, roomTotals: data.rooms.map((r) => r.total) })
       setStep((s) => s + 1)
     } catch {
       setCalcError('No pudimos calcular el presupuesto. Probá de nuevo.')
@@ -498,10 +578,10 @@ export default function BudgetCalculatorPage() {
             <div className="field" style={{ marginTop: 20, maxWidth: 160 }}>
               <input
                 type="number"
-                min="1"
-                max="8"
-                value={roomCount}
-                onChange={(e) => setRoomCount(e.target.value)}
+                min={MIN_ROOMS}
+                max={MAX_ROOMS}
+                value={countInput}
+                onChange={(e) => setCountInput(e.target.value)}
               />
             </div>
             <button className="btn" style={{ marginTop: 28 }} onClick={startRooms}>
@@ -510,11 +590,52 @@ export default function BudgetCalculatorPage() {
           </div>
         ) : currentRoom ? (
           <div style={{ marginTop: 36 }}>
-            <p className="eyebrow">
-              Habitación {step} de {roomCount}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+              <p className="eyebrow">
+                Habitación {step} de {roomCount}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Total de habitaciones
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={stepperButtonStyle(roomCount <= MIN_ROOMS)}
+                  disabled={roomCount <= MIN_ROOMS}
+                  onClick={() => changeRoomCount(-1)}
+                  aria-label="Quitar una habitación"
+                >
+                  −
+                </button>
+                <strong style={{ minWidth: 20, textAlign: 'center', fontSize: '1.1rem' }} aria-live="polite">
+                  {roomCount}
+                </strong>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={stepperButtonStyle(roomCount >= MAX_ROOMS)}
+                  disabled={roomCount >= MAX_ROOMS}
+                  onClick={() => changeRoomCount(1)}
+                  aria-label="Agregar una habitación"
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
-            <div style={{ marginTop: 20 }}>
+            <div className="field" style={{ marginTop: 20, maxWidth: 360 }}>
+              <label htmlFor="room-nombre">Nombre (opcional)</label>
+              <input
+                id="room-nombre"
+                maxLength={40}
+                value={currentRoom.nombre}
+                onChange={(e) => updateRoom(step - 1, { nombre: e.target.value })}
+                placeholder="Ej: Dormitorio principal"
+              />
+            </div>
+
+            <div style={{ marginTop: 24 }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Tipo de espacio
               </label>
@@ -634,14 +755,16 @@ export default function BudgetCalculatorPage() {
             </div>
           </div>
         ) : (
-          <BudgetSummary rooms={rooms} finalTotal={finalTotal} onBack={() => setStep(roomCount)} />
+          <BudgetSummary rooms={rooms} result={result} onBack={() => setStep(roomCount)} />
         )}
       </div>
     </div>
   )
 }
 
-function BudgetSummary({ rooms, finalTotal, onBack }) {
+function BudgetSummary({ rooms, result, onBack }) {
+  const { total, roomTotals } = result
+  const [showReport, setShowReport] = useState(false)
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -649,9 +772,8 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
 
   const descripcion = rooms
     .map((r, i) => {
-      const label = ROOM_TYPES.find((t) => t.key === r.type)?.label || r.type
       const checked = QUESTIONS[r.type].filter((q) => r.answers[q.key]).map((q) => q.label)
-      return `Habitación ${i + 1} (${label}, ${r.largo}m x ${r.ancho}m = ${roomFloorM2(r)}m²): ${checked.length ? checked.join(', ') : 'sin ítems seleccionados'}`
+      return `${roomTitle(r, i)} (${roomTypeLabel(r)}, ${r.largo}m x ${r.ancho}m = ${formatM2(roomFloorM2(r))}m²) — ${formatMoney(roomTotals[i])}: ${checked.length ? checked.join(', ') : 'sin ítems seleccionados'}`
     })
     .join('\n')
 
@@ -670,7 +792,7 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
           email: form.email,
           telefono: form.telefono,
           tipo: 'Presupuesto calculado en la web',
-          descripcion: `Presupuesto estimado: ${formatMoney(finalTotal)}\n\n${descripcion}`,
+          descripcion: `Presupuesto estimado: ${formatMoney(total)}\n\n${descripcion}`,
           eventId,
           customEventId,
         }),
@@ -699,12 +821,11 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
       )}
       <div style={{ border: '2px solid var(--black)', padding: 28 }}>
         {rooms.map((r, i) => {
-          const label = ROOM_TYPES.find((t) => t.key === r.type)?.label || r.type
           const checked = QUESTIONS[r.type].filter((q) => r.answers[q.key])
           return (
             <div key={i} style={{ paddingBottom: 18, marginBottom: 18, borderBottom: '2px solid var(--gray-200)' }}>
               <strong>
-                Habitación {i + 1} — {label} ({roomFloorM2(r)}m²)
+                {roomTitle(r, i)} — {roomTypeLabel(r)} ({formatM2(roomFloorM2(r))}m²)
               </strong>
               {checked.length > 0 ? (
                 <ul style={{ marginTop: 8, paddingLeft: 20, color: 'var(--gray-700)', fontSize: '0.9rem' }}>
@@ -720,7 +841,7 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
         })}
         <p style={{ fontSize: '0.85rem', color: 'var(--gray-400)' }}>Presupuesto estimado</p>
         <p style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', fontFamily: "'Archivo Black', sans-serif", marginTop: 6 }}>
-          {formatMoney(finalTotal)}
+          {formatMoney(total)}
         </p>
         <p className="eyebrow" style={{ marginTop: 16 }}>
           Trabajo llave en mano
@@ -733,6 +854,17 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
         <p style={{ marginTop: 10, fontSize: '0.85rem', color: 'var(--gray-400)' }}>
           Este es un valor aproximado. El presupuesto final puede variar según relevamiento en el lugar.
         </p>
+
+        <button
+          type="button"
+          className="btn btn-outline"
+          style={{ marginTop: 22 }}
+          aria-expanded={showReport}
+          onClick={() => setShowReport((v) => !v)}
+        >
+          {showReport ? 'Ocultar informe' : 'Ver informe por habitación'}
+        </button>
+        {showReport && <RoomReport rooms={rooms} roomTotals={roomTotals} total={total} />}
       </div>
 
       <div style={{ marginTop: 36, border: '2px solid var(--black)', padding: 28, background: 'var(--gray-100)' }}>
@@ -781,6 +913,42 @@ function BudgetSummary({ rooms, finalTotal, onBack }) {
             </button>
           </form>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Precio de cada habitación (con margen incluido), en el mismo orden en que se cargaron.
+function RoomReport({ rooms, roomTotals, total }) {
+  return (
+    <div style={{ marginTop: 22, borderTop: '2px solid var(--black)' }}>
+      <p className="eyebrow" style={{ marginTop: 18 }}>
+        Informe por habitación
+      </p>
+      {rooms.map((r, i) => (
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            gap: 16,
+            padding: '14px 0',
+            borderBottom: '2px solid var(--gray-200)',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <strong style={{ overflowWrap: 'anywhere' }}>{roomTitle(r, i)}</strong>
+            <p style={{ marginTop: 4, fontSize: '0.8rem', color: 'var(--gray-400)' }}>
+              {roomTypeLabel(r)} · {formatM2(roomFloorM2(r))}m²
+            </p>
+          </div>
+          <strong style={{ whiteSpace: 'nowrap' }}>{formatMoney(roomTotals[i])}</strong>
+        </div>
+      ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, paddingTop: 14 }}>
+        <strong style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total</strong>
+        <strong style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '1.2rem' }}>{formatMoney(total)}</strong>
       </div>
     </div>
   )

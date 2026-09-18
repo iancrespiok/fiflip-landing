@@ -9,13 +9,14 @@ const UNIT_LABEL = {
   COVERAGE_M2: 'm² por unidad',
 }
 
-const GROUP_ORDER = ['GENERAL', 'PINTURA', 'BAÑO', 'COCINA', 'HABITACIÓN', 'CONFIG']
+const GROUP_ORDER = ['GENERAL', 'PINTURA', 'BAÑO', 'COCINA', 'HABITACIÓN', 'TERRAZA', 'CONFIG']
 const GROUP_LABEL = {
   GENERAL: 'General (compartido entre habitaciones)',
   PINTURA: 'Pintura',
   BAÑO: 'Baño',
   COCINA: 'Cocina',
-  HABITACIÓN: 'Habitación',
+  HABITACIÓN: 'Habitación (también aplica a pasillo o distribuidor)',
+  TERRAZA: 'Terraza o patio',
   CONFIG: 'Configuración',
 }
 
