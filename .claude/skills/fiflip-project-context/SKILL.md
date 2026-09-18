@@ -101,24 +101,39 @@ investment opportunity cards — same `Project` data, different view.
 ## Budget calculator (`/presupuesto`)
 
 Multi-step wizard (`BudgetCalculatorPage.jsx`): room count → per room
-(type BAÑO/COCINA/HABITACIÓN + m² + a yes/no checklist specific to that
-type, see `QUESTIONS`) → estimated total with margin applied → a
+(optional name + type BAÑO/COCINA/HABITACIÓN/PASILLO/TERRAZA + m² + a
+yes/no checklist specific to that type, see `QUESTIONS`) → estimated total
+with margin applied, plus an expandable per-room price report → a
 lead-capture CTA that reuses `POST /api/leads/renovation` (so calculator
 users land in the same pipeline as the regular form, with the itemized
-breakdown stuffed into `descripcion`).
+breakdown and each room's name/price stuffed into `descripcion`). The
+total number of rooms can be changed at any point mid-wizard (− / + next
+to the "Habitación N de M" header; removing drops the last room).
+
+The pricing math lives **in the backend**, not the browser:
+`POST /api/budget/calculate` takes room inputs (type, dimensions, checked
+item keys) and returns `{ total, rooms: [{ total }] }` — one margin-inclusive
+price per room, index-aligned with the request, each rounded to whole pesos
+so the report always sums to `total`. Room names are frontend-only (matched
+by index). A new room type or checklist item needs **both** sides: the
+`QUESTIONS`/`ROOM_TYPES` entry in the frontend and the `RoomType` enum +
+`RoomItemCatalog` formula in the backend (plus catalog rows in
+`PricingSeeder`). Deploy the backend first — it's additive, so the old
+frontend keeps working. PASILLO reuses HABITACIÓN's items and prices;
+TERRAZA has its own pricing group (membrane per m², tank move fixed).
 
 Pricing is entirely admin-editable (`pricing_items` table /
-`PricingItem` entity, `/api/budget/pricing` public GET, protected
-`/api/admin/budget/pricing` PUT, edited from the "Precios" tab
+`PricingItem` entity, protected `/api/admin/budget/pricing` GET/PUT,
+edited from the "Precios" tab
 in `/admin/projects`, next to "Proyectos"). Every line item carries
 **material and labor as separate rows** (`<key>_material_fixed` /
 `<key>_labor_fixed`, or `_material_m2` / `_labor_m2` for area-based
-ones) — the frontend sums both. Paint is the one exception: it's a
+ones) — the backend sums both. Paint is the one exception: it's a
 formula, not a flat per-m² price — `paint_labor_m2` (labor) plus
 however many paint/enduido buckets and fijador units the m² requires,
 computed from separate `*_coverage_m2` (`PricingUnit.COVERAGE_M2`)
 "yield" rows also editable in admin (see `paintCost()` in
-`BudgetCalculatorPage.jsx` and the `PINTURA` group in the pricing
+`BudgetCalculationService` and the `PINTURA` group in the pricing
 catalog). `PricingSeeder` keeps the catalog in sync on every boot
 (deletes superseded keys, inserts missing ones, never touches a value
 an admin already edited for a key that still exists) — see gotcha #8
