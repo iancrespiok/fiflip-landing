@@ -13,7 +13,7 @@ const ROOM_TYPES = [
 ]
 
 const MIN_ROOMS = 1
-const MAX_ROOMS = 8
+const MAX_ROOMS = 20
 
 // El precio de cada ítem (y la fórmula: fijo, por m² de pared/piso, o pintura)
 // se calcula en el backend — acá solo queda lo necesario para la UI.
