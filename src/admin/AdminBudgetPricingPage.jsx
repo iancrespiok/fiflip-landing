@@ -16,7 +16,7 @@ const GROUP_LABEL = {
   BAÑO: 'Baño',
   COCINA: 'Cocina',
   HABITACIÓN: 'Habitación (también aplica a pasillo o distribuidor)',
-  TERRAZA: 'Terraza o patio',
+  TERRAZA: 'Espacio exterior (patio, balcón, terraza)',
   CONFIG: 'Configuración',
 }
 
