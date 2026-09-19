@@ -9,7 +9,7 @@ const ROOM_TYPES = [
   { key: 'COCINA', label: 'Cocina' },
   { key: 'HABITACION', label: 'Habitación' },
   { key: 'PASILLO', label: 'Pasillo o distribuidor' },
-  { key: 'TERRAZA', label: 'Terraza o patio' },
+  { key: 'TERRAZA', label: 'Espacio exterior' },
 ]
 
 const MIN_ROOMS = 1
@@ -18,7 +18,7 @@ const MAX_ROOMS = 20
 // El precio de cada ítem (y la fórmula: fijo, por m² de pared/piso, o pintura)
 // se calcula en el backend — acá solo queda lo necesario para la UI.
 const HABITACION_QUESTIONS = [
-  { key: 'pintar', label: 'Pintar' },
+  { key: 'pintar', label: 'Pintar paredes y techo' },
   { key: 'pisos', label: 'Cambiar pisos' },
   { key: 'placar', label: 'Si tiene placar, cambiar las puertas' },
   { key: 'luminaria', label: 'Cambiar luminaria' },
@@ -51,38 +51,34 @@ const QUESTIONS = {
     { key: 'aire', label: 'Colocar aire acondicionado' },
   ],
   HABITACION: HABITACION_QUESTIONS,
-  // Un pasillo o distribuidor tiene las mismas opciones que una habitación normal.
-  PASILLO: HABITACION_QUESTIONS,
+  // Un pasillo o distribuidor: como una habitación, pero sin aire acondicionado ni aberturas.
+  PASILLO: HABITACION_QUESTIONS.filter((q) => q.key !== 'aire' && q.key !== 'abertura'),
+  // Espacio exterior (patio, balcón, terraza). El backend lo conoce como TERRAZA.
   TERRAZA: [
+    { key: 'pintar', label: 'Pintar paredes' },
+    { key: 'pisos', label: 'Cambiar pisos' },
     { key: 'impermeabilizar', label: 'Impermeabilizar pisos (con membrana)' },
+    { key: 'luminaria', label: 'Cambiar luminaria' },
     { key: 'tanque', label: 'Mover tanque de agua' },
   ],
 }
 
-// Etiquetas cortas para mostrar dentro del plano cuando se tilda cada ítem
-const ITEM_TAGS = {
-  sanitarios: 'SANITARIOS',
-  techo: 'CIELORRASO',
-  revestimientos: 'REVEST.',
-  ducha: 'DUCHA',
-  enchufes: 'ENCHUFES',
-  vanitory: 'VANITORY',
-  griferias: 'GRIFERIA',
-  abertura: 'VENTANA',
-  puerta_corrediza: 'CORREDIZA',
-  ampliar: 'AMPLIACION',
-  muebles: 'MUEBLES',
-  mesadas: 'MESADA',
-  pintar: 'PINTURA',
-  aire: 'A/A',
-  pisos: 'PISO',
-  placar: 'PLACAR',
-  luminaria: 'LUZ',
-  impermeabilizar: 'IMPERMEAB.',
-  tanque: 'TANQUE',
+const DEFAULT_ALTURA = '2.6'
+const DEFAULT_ALTURA_EXTERIOR = '1.5' // altura de las paredes de un patio, balcón o terraza (no tiene techo)
+
+function defaultAltura(type) {
+  return type === 'TERRAZA' ? DEFAULT_ALTURA_EXTERIOR : DEFAULT_ALTURA
 }
 
-const DEFAULT_ALTURA = '2.6'
+// Nombres típicos de cada tipo de espacio, como placeholder (en gris) del campo de nombre.
+const NAME_PLACEHOLDERS = {
+  BANO: 'Ej: Baño principal o Toilette',
+  COCINA: 'Ej: Cocina o Cocina-comedor',
+  HABITACION: 'Ej: Comedor, Living o Playroom',
+  PASILLO: 'Ej: Pasillo o Hall de entrada',
+  TERRAZA: 'Ej: Patio, Balcón o Terraza',
+}
+const DEFAULT_NAME_PLACEHOLDER = 'Ej: Dormitorio principal'
 
 function roomFloorM2(room) {
   return (Number(room.largo) || 0) * (Number(room.ancho) || 0)
@@ -115,266 +111,12 @@ function formatMoney(n) {
   return '$' + Math.round(n).toLocaleString('es-AR')
 }
 
-// Ítems que se dibujan como capas sobre el plano en vez de como íconos sueltos
-const OVERLAY_KEYS = ['techo', 'pisos', 'revestimientos', 'impermeabilizar']
-
-// Aberturas: se dibujan sobre la pared del plano (arriba/abajo), no como ícono suelto
-const WALL_KEYS = ['abertura', 'puerta_corrediza']
-
-// Dónde cae cada ícono dentro del plano (top/left en %), para que se ubique
-// donde ese elemento realmente iría (contra una pared, en una esquina) en vez
-// de amontonarse en el centro. Los índices se corresponden con ICONS[key].
-const ICON_POSITIONS = {
-  sanitarios: [{ top: 16, left: 20 }, { top: 16, left: 42 }],
-  ducha: [{ top: 16, left: 80 }],
-  enchufes: [{ top: 45, left: 10 }],
-  // La grifería se dibuja pegada al vanitory/mesada (misma fila), no en la pared opuesta.
-  griferias: [{ top: 88, left: 46 }],
-  vanitory: [{ top: 88, left: 28 }],
-  muebles: [{ top: 30, left: 50 }],
-  ampliar: [{ top: 65, left: 50 }],
-  mesadas: [{ top: 88, left: 28 }],
-  pintar: [{ top: 12, left: 15 }],
-  aire: [{ top: 10, left: 85 }],
-  placar: [{ top: 50, left: 85 }],
-  luminaria: [{ top: 18, left: 50 }],
-  tanque: [{ top: 24, left: 78 }],
-}
-
-function Svg({ children, size = 26 }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="var(--black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  )
-}
-
-const ICONS = {
-  sanitarios: [
-    {
-      label: 'Inodoro',
-      render: () => (
-        <Svg size={36}>
-          <rect x="7" y="2" width="10" height="5" rx="1" />
-          <path d="M6 9h12a1 1 0 0 1 1 1v3a7 6 0 0 1-14 0v-3a1 1 0 0 1 1-1z" />
-        </Svg>
-      ),
-    },
-    {
-      label: 'Bidet',
-      render: () => (
-        <Svg size={36}>
-          <path d="M6 8h12a1 1 0 0 1 1 1v4a7 6 0 0 1-14 0v-4a1 1 0 0 1 1-1z" />
-          <circle cx="12" cy="6" r="1.3" fill="var(--black)" stroke="none" />
-        </Svg>
-      ),
-    },
-  ],
-  ducha: [
-    {
-      label: 'Ducha',
-      render: () => (
-        <Svg>
-          <rect x="3" y="3" width="18" height="18" />
-          <line x1="3" y1="21" x2="21" y2="3" />
-          <circle cx="18" cy="6" r="2" />
-        </Svg>
-      ),
-    },
-  ],
-  vanitory: [
-    {
-      label: 'Vanitory',
-      render: () => (
-        // Vista en planta: mesada (rectángulo) + bacha (óvalo inscripto). La grifería se
-        // dibuja aparte, sobre la mesada, como su propio ícono cuando está tildada.
-        <Svg size={36}>
-          <rect x="3" y="4" width="18" height="16" rx="1" />
-          <ellipse cx="12" cy="13" rx="6" ry="4.5" />
-        </Svg>
-      ),
-    },
-  ],
-  griferias: [
-    {
-      label: 'Grifería',
-      render: () => (
-        // Grifo visto desde arriba: cuerpo + canilla + mando — pensado para apoyarse
-        // sobre la mesada del vanitory/mesada, no como pieza aparte contra la pared.
-        <Svg size={18}>
-          <circle cx="12" cy="16" r="2.2" />
-          <path d="M12 14V6" />
-          <path d="M8 6h8" />
-        </Svg>
-      ),
-    },
-  ],
-  enchufes: [
-    {
-      label: 'Enchufe',
-      render: () => (
-        <Svg>
-          <rect x="4" y="4" width="16" height="16" rx="3" />
-          <line x1="10" y1="9" x2="10" y2="15" />
-          <line x1="14" y1="9" x2="14" y2="15" />
-        </Svg>
-      ),
-    },
-  ],
-  muebles: [
-    {
-      label: 'Muebles',
-      render: () => (
-        <Svg>
-          <rect x="2" y="4" width="9" height="16" />
-          <rect x="13" y="4" width="9" height="16" />
-          <circle cx="9" cy="12" r="0.8" fill="var(--black)" stroke="none" />
-          <circle cx="15" cy="12" r="0.8" fill="var(--black)" stroke="none" />
-        </Svg>
-      ),
-    },
-  ],
-  mesadas: [
-    {
-      label: 'Mesada',
-      render: () => (
-        <Svg>
-          <rect x="2" y="9" width="20" height="6" />
-        </Svg>
-      ),
-    },
-  ],
-  placar: [
-    {
-      label: 'Placar',
-      render: () => (
-        <Svg>
-          <rect x="3" y="2" width="18" height="20" />
-          <line x1="12" y1="2" x2="12" y2="22" />
-          <circle cx="9.5" cy="12" r="0.9" fill="var(--black)" stroke="none" />
-          <circle cx="14.5" cy="12" r="0.9" fill="var(--black)" stroke="none" />
-        </Svg>
-      ),
-    },
-  ],
-  luminaria: [
-    {
-      label: 'Luminaria',
-      render: () => (
-        <Svg>
-          <circle cx="12" cy="12" r="5" />
-          <line x1="12" y1="1" x2="12" y2="4" />
-          <line x1="12" y1="20" x2="12" y2="23" />
-          <line x1="1" y1="12" x2="4" y2="12" />
-          <line x1="20" y1="12" x2="23" y2="12" />
-        </Svg>
-      ),
-    },
-  ],
-  aire: [
-    {
-      label: 'Aire ac.',
-      render: () => (
-        <Svg>
-          <rect x="2" y="5" width="20" height="7" rx="1.5" />
-          <line x1="5" y1="8.5" x2="19" y2="8.5" />
-          <path d="M8 15l-2 4M12 15v4M16 15l2 4" />
-        </Svg>
-      ),
-    },
-  ],
-  tanque: [
-    {
-      label: 'Tanque de agua',
-      render: () => (
-        // Tanque visto desde arriba: tapa circular con su borde interior.
-        <Svg size={34}>
-          <circle cx="12" cy="12" r="9" />
-          <circle cx="12" cy="12" r="5.5" />
-        </Svg>
-      ),
-    },
-  ],
-  ampliar: [
-    {
-      label: 'Ampliación',
-      render: () => (
-        <Svg>
-          <path d="M4 10V4h6" />
-          <path d="M20 14v6h-6" />
-          <line x1="4" y1="4" x2="10" y2="10" />
-          <line x1="20" y1="20" x2="14" y2="14" />
-        </Svg>
-      ),
-    },
-  ],
-  pintar: [
-    {
-      label: 'Pintura',
-      render: () => (
-        <Svg>
-          <rect x="3" y="4" width="14" height="6" rx="1" />
-          <line x1="17" y1="7" x2="17" y2="14" />
-          <line x1="17" y1="14" x2="21" y2="18" />
-        </Svg>
-      ),
-    },
-  ],
-}
-
-// Abertura dibujada sobre la pared superior o inferior del plano, como se vería
-// en un corte de planta: dos líneas de pared con el vidrio (ventana) o la hoja
-// corrediza (puerta) cruzando el vano.
-// Glyph de abertura al ras del muro (top:0 / bottom:0, sin desplazamiento
-// vertical), como se vería en el corte de pared de un plano real.
-function WallOpening({ kind, edge }) {
-  return (
-    <svg
-      viewBox="0 0 100 16"
-      width="76"
-      height="12"
-      style={{ position: 'absolute', [edge]: 0, left: '50%', transform: 'translate(-50%, 0)', zIndex: 2, display: 'block' }}
-    >
-      <line x1="2" y1="2" x2="98" y2="2" stroke="var(--black)" strokeWidth="2.5" />
-      <line x1="2" y1="14" x2="98" y2="14" stroke="var(--black)" strokeWidth="2.5" />
-      {kind === 'ventana' ? (
-        <line x1="2" y1="8" x2="98" y2="8" stroke="var(--black)" strokeWidth="1.6" />
-      ) : (
-        <>
-          <line x1="2" y1="8" x2="45" y2="8" stroke="var(--black)" strokeWidth="1.2" strokeDasharray="3 2" />
-          <rect x="45" y="4" width="50" height="8" fill="var(--black)" />
-        </>
-      )}
-    </svg>
-  )
-}
-
-// Plano ilustrativo: un rectángulo proporcional a largo x ancho. Los ítems que
-// cubren toda una superficie (piso, revestimientos, luces de techo) se dibujan
-// como capas sobre el plano; el resto aparece como un ícono representativo.
-// No pretende ser un plano arquitectónico real — es una referencia visual.
+// Plano ilustrativo: solo un rectángulo proporcional a largo x ancho, como referencia
+// visual del tamaño del espacio. No pretende ser un plano arquitectónico.
 function RoomDiagram({ room }) {
   const largo = Number(room.largo) || 0
   const ancho = Number(room.ancho) || 0
   if (largo <= 0 || ancho <= 0) return null
-
-  const questions = QUESTIONS[room.type] || []
-  const checkedKeys = questions.filter((q) => room.answers[q.key]).map((q) => q.key)
-  const hasTecho = checkedKeys.includes('techo')
-  const hasPisos = checkedKeys.includes('pisos')
-  const hasRevestimientos = checkedKeys.includes('revestimientos')
-  const hasImpermeabilizar = checkedKeys.includes('impermeabilizar')
-  const hasVentana = checkedKeys.includes('abertura')
-  const hasPuertaCorrediza = checkedKeys.includes('puerta_corrediza')
-  const iconEntries = checkedKeys
-    .filter((k) => !OVERLAY_KEYS.includes(k) && !WALL_KEYS.includes(k))
-    .flatMap((k) =>
-      (ICONS[k] || [{ label: ITEM_TAGS[k] || k, render: null }]).map((entry, i) => ({
-        ...entry,
-        mapKey: `${k}-${i}`,
-        pos: (ICON_POSITIONS[k] && ICON_POSITIONS[k][i]) || { top: 50, left: 50 },
-      }))
-    )
 
   const maxPx = 320
   const pxPerM = Math.min(maxPx / largo, maxPx / ancho, 90)
@@ -389,77 +131,12 @@ function RoomDiagram({ room }) {
       <div
         style={{
           marginTop: 10,
-          position: 'relative',
           width: widthPx,
           height: heightPx,
           border: '3px solid var(--black)',
-          background: hasPisos
-            ? 'repeating-linear-gradient(45deg, var(--gray-200), var(--gray-200) 2px, var(--white) 2px, var(--white) 9px)'
-            : 'var(--white)',
-          overflow: 'hidden',
+          background: 'var(--white)',
         }}
-      >
-        {hasTecho && (
-          // Luces dicroicas repartidas por todo el cielorraso: una trama de puntos
-          // sutil de fondo, en vez de íconos sueltos que compiten por lugar.
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: 'radial-gradient(circle, var(--black) 1.3px, transparent 1.4px)',
-              backgroundSize: '30px 30px',
-              backgroundPosition: '15px 15px',
-              opacity: 0.3,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {hasImpermeabilizar && (
-          // Membrana sobre todo el piso: una grilla fina, distinta de la trama diagonal
-          // de "cambiar pisos".
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage:
-                'repeating-linear-gradient(0deg, var(--gray-400) 0 1px, transparent 1px 14px), repeating-linear-gradient(90deg, var(--gray-400) 0 1px, transparent 1px 14px)',
-              opacity: 0.45,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {hasRevestimientos && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 10,
-              border: '2px dashed var(--gray-400)',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {iconEntries.map((entry) => (
-          <div
-            key={entry.mapKey}
-            style={{
-              position: 'absolute',
-              top: `${entry.pos.top}%`,
-              left: `${entry.pos.left}%`,
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1,
-              width: 'max-content',
-            }}
-          >
-            {entry.render ? entry.render() : null}
-          </div>
-        ))}
-
-        {hasVentana && <WallOpening kind="ventana" edge="top" />}
-        {hasPuertaCorrediza && <WallOpening kind="puerta_corrediza" edge="bottom" />}
-      </div>
+      />
       <p style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--gray-400)' }}>
         {ancho}m × {largo}m — plano orientativo, no a escala arquitectónica
       </p>
@@ -624,18 +301,7 @@ export default function BudgetCalculatorPage() {
               </div>
             </div>
 
-            <div className="field" style={{ marginTop: 20, maxWidth: 360 }}>
-              <label htmlFor="room-nombre">Nombre (opcional)</label>
-              <input
-                id="room-nombre"
-                maxLength={40}
-                value={currentRoom.nombre}
-                onChange={(e) => updateRoom(step - 1, { nombre: e.target.value })}
-                placeholder="Ej: Dormitorio principal"
-              />
-            </div>
-
-            <div style={{ marginTop: 24 }}>
+            <div style={{ marginTop: 20 }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Tipo de espacio
               </label>
@@ -644,13 +310,31 @@ export default function BudgetCalculatorPage() {
                   <button
                     key={rt.key}
                     type="button"
-                    onClick={() => updateRoom(step - 1, { type: rt.key, answers: {} })}
+                    onClick={() =>
+                      updateRoom(step - 1, {
+                        type: rt.key,
+                        answers: {},
+                        // Si la altura sigue en el valor por defecto del tipo anterior, pasa al del nuevo.
+                        altura: currentRoom.altura === defaultAltura(currentRoom.type) ? defaultAltura(rt.key) : currentRoom.altura,
+                      })
+                    }
                     className={rt.key === currentRoom.type ? 'btn' : 'btn btn-outline'}
                   >
                     {rt.label}
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="field" style={{ marginTop: 24, maxWidth: 360 }}>
+              <label htmlFor="room-nombre">Nombre (opcional)</label>
+              <input
+                id="room-nombre"
+                maxLength={40}
+                value={currentRoom.nombre}
+                onChange={(e) => updateRoom(step - 1, { nombre: e.target.value })}
+                placeholder={NAME_PLACEHOLDERS[currentRoom.type] || DEFAULT_NAME_PLACEHOLDER}
+              />
             </div>
 
             {currentRoom.type && (
@@ -679,14 +363,14 @@ export default function BudgetCalculatorPage() {
                     />
                   </div>
                   <div className="field" style={{ maxWidth: 160 }}>
-                    <label>Altura de techo (m)</label>
+                    <label>{currentRoom.type === 'TERRAZA' ? 'Altura de paredes (m)' : 'Altura de techo (m)'}</label>
                     <input
                       type="number"
                       min="0"
                       step="0.1"
                       value={currentRoom.altura}
                       onChange={(e) => updateRoom(step - 1, { altura: e.target.value })}
-                      placeholder="Ej: 2.6"
+                      placeholder={`Ej: ${defaultAltura(currentRoom.type)}`}
                     />
                   </div>
                 </div>
