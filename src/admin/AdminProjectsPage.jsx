@@ -13,6 +13,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { resizeImageForUpload } from '../images.js'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -83,7 +84,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
 
   const uploadFile = async (file) => {
     const body = new FormData()
-    body.append('file', file)
+    body.append('file', await resizeImageForUpload(file))
     const res = await fetch(`${API_URL}/api/admin/uploads`, {
       method: 'POST',
       headers: authHeaders,
@@ -334,7 +335,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
                 padding: 16,
               }}
             >
-              <img src={p.coverImageUrl} alt={p.title} style={{ width: 64, height: 64, objectFit: 'cover' }} />
+              <img src={p.coverImageUrl} alt={p.title} loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: 'cover' }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <strong>{p.title}</strong>
                 <div style={{ fontSize: '0.8rem', color: 'var(--gray-700)' }}>

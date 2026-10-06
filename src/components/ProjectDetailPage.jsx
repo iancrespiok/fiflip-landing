@@ -110,7 +110,7 @@ function Carousel({ images, alt, onOpen }) {
     <div className="pd-carousel">
       {images.map((url, i) => (
         <button key={url} className="pd-carousel-item" onClick={() => onOpen(i)}>
-          <img src={url} alt={alt} />
+          <img src={url} alt={alt} loading="lazy" decoding="async" />
         </button>
       ))}
       <style>{`
