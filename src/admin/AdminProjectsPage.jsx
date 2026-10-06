@@ -13,7 +13,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { resizeImageForUpload } from '../images.js'
+import { COVER_MAX_SIDE, resizeImageForUpload } from '../images.js'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -82,9 +82,9 @@ export default function AdminProjectsPage({ token, onLogout }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const uploadFile = async (file) => {
+  const uploadFile = async (file, resizeOptions) => {
     const body = new FormData()
-    body.append('file', await resizeImageForUpload(file))
+    body.append('file', await resizeImageForUpload(file, resizeOptions))
     const res = await fetch(`${API_URL}/api/admin/uploads`, {
       method: 'POST',
       headers: authHeaders,
@@ -106,7 +106,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
     setError('')
     setUploadingCover(true)
     try {
-      setCoverImageUrl(await uploadFile(file))
+      setCoverImageUrl(await uploadFile(file, { maxSide: COVER_MAX_SIDE }))
     } catch {
       setError('No pudimos subir la portada. Probá de nuevo.')
     } finally {
@@ -121,7 +121,7 @@ export default function AdminProjectsPage({ token, onLogout }) {
     setError('')
     setUploading(true)
     try {
-      const urls = await Promise.all(files.map(uploadFile))
+      const urls = await Promise.all(files.map((f) => uploadFile(f)))
       setUrls((arr) => [...arr, ...urls])
     } catch {
       setError('No pudimos subir alguna de las fotos. Probá de nuevo.')
