@@ -71,7 +71,7 @@ export default function InvestSection() {
             {projects.map((p) => (
               <div className="invest-card" key={p.id}>
                 <div className="invest-card-top">
-                  <span>{STATUS_LABEL[p.status] || 'Fiflip'}</span>
+                  <span>{STATUS_LABEL[p.status] || 'FiFlip'}</span>
                 </div>
                 <h3>{p.title}</h3>
                 <p>{p.description}</p>
@@ -90,7 +90,7 @@ export default function InvestSection() {
             <div>
               <h3 style={{ fontSize: '1.8rem' }}>¡Gracias por tu interés!</h3>
               <p style={{ marginTop: 14, color: '#c9c9c9', lineHeight: 1.55, maxWidth: 480 }}>
-                Un asesor de Fiflip se va a contactar con vos para compartirte el
+                Un asesor de FiFlip se va a contactar con vos para compartirte el
                 detalle de los proyectos disponibles.
               </p>
               <button

@@ -13,7 +13,7 @@ export default function Hero() {
     >
       <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
         <p className="eyebrow" style={{ color: 'var(--white)', marginBottom: 24 }}>
-          Fiflip Real Estate
+          FiFlip Real Estate
         </p>
         <h1
           style={{
