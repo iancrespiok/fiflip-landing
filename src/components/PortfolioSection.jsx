@@ -64,7 +64,9 @@ export default function PortfolioSection() {
                   navigate(`/proyecto/${p.id}`)
                 }}
               >
-                <div className="portfolio-card-img" style={{ backgroundImage: `url(${p.coverImageUrl})` }} />
+                <div className="portfolio-card-img">
+                  <img src={p.coverImageUrl} alt="" loading="lazy" decoding="async" />
+                </div>
                 <div className="portfolio-card-body">
                   <h3>{p.title}</h3>
                   <p>{p.description}</p>
@@ -113,9 +115,13 @@ export default function PortfolioSection() {
         }
         .portfolio-card-img {
           aspect-ratio: 4 / 3;
-          background-size: cover;
-          background-position: center;
           background-color: var(--gray-200);
+        }
+        .portfolio-card-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
         .portfolio-card-body {
           padding: 20px;
