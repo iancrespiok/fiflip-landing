@@ -44,7 +44,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>Fiflip</h4>
+          <h4 style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>FiFlip</h4>
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8, color: 'var(--gray-700)' }}>
             <a href="#top" style={{ textDecoration: 'none' }}>
               Inicio
@@ -58,7 +58,7 @@ export default function Footer() {
 
       <div className="wrap" style={{ marginTop: 50, paddingTop: 24, borderTop: '2px solid var(--gray-200)' }}>
         <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)' }}>
-          © {new Date().getFullYear()} Fiflip Real Estate. Todos los derechos reservados.
+          © {new Date().getFullYear()} FiFlip Real Estate. Todos los derechos reservados.
         </p>
       </div>
 

@@ -42,7 +42,7 @@ export default function AdminLogin({ onLogin }) {
     >
       <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 360 }}>
         <h1 style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '1.6rem', marginBottom: 24 }}>
-          FIFLIP ADMIN
+          FiFlip Admin
         </h1>
         <div className="field">
           <label htmlFor="password" style={{ color: '#c9c9c9' }}>

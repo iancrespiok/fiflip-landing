@@ -28,7 +28,7 @@ export default function PortfolioSection() {
       <div className="wrap">
         <p className="eyebrow">Nuestro trabajo</p>
         <h2 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)', marginTop: 16, maxWidth: 700 }}>
-          Proyectos de Fiflip.
+          Proyectos de FiFlip.
         </h2>
         <p style={{ maxWidth: 560, marginTop: 18, color: 'var(--gray-700)', fontSize: '1.05rem', lineHeight: 1.55 }}>
           Proyectos de flipping y refacciones entregadas, con fotos de antes y después.
