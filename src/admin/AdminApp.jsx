@@ -3,6 +3,7 @@ import AdminLogin from './AdminLogin.jsx'
 import AdminHeader from './AdminHeader.jsx'
 import AdminProjectsPage from './AdminProjectsPage.jsx'
 import AdminBudgetPricingPage from './AdminBudgetPricingPage.jsx'
+import AdminBudgetCostPage from './AdminBudgetCostPage.jsx'
 
 export default function AdminApp() {
   const [token, setToken] = useState(() => localStorage.getItem('fiflip_admin_token'))
@@ -21,11 +22,9 @@ export default function AdminApp() {
     <div style={{ minHeight: '100vh', background: 'var(--gray-100)', padding: '40px 24px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <AdminHeader tab={tab} onTabChange={setTab} onLogout={onLogout} />
-        {tab === 'projects' ? (
-          <AdminProjectsPage token={token} onLogout={onLogout} />
-        ) : (
-          <AdminBudgetPricingPage token={token} onLogout={onLogout} />
-        )}
+        {tab === 'projects' && <AdminProjectsPage token={token} onLogout={onLogout} />}
+        {tab === 'pricing' && <AdminBudgetPricingPage token={token} onLogout={onLogout} />}
+        {tab === 'cost' && <AdminBudgetCostPage token={token} onLogout={onLogout} />}
       </div>
     </div>
   )
