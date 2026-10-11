@@ -16,6 +16,12 @@ export default function AdminHeader({ tab, onTabChange, onLogout }) {
           >
             Precios
           </button>
+          <button
+            className={tab === 'cost' ? 'btn' : 'btn btn-outline'}
+            onClick={() => onTabChange('cost')}
+          >
+            Costos
+          </button>
         </nav>
       </div>
       <button className="btn btn-outline" onClick={onLogout}>
