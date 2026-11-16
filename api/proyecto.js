@@ -1,9 +1,11 @@
-// Sirve /proyecto/:id con el título, la descripción y la portada del proyecto
-// ya escritos en el HTML. WhatsApp, Facebook, etc. no ejecutan JS, así que sin
-// esto la vista previa de un link compartido siempre diría solo "FiFlip".
-// Si algo falla, devuelve el index.html tal cual y la SPA sigue funcionando.
+// Vista previa de /proyecto/:id para los bots que arman la tarjeta de un link
+// compartido (WhatsApp, Facebook, Telegram, etc.). Esos bots no ejecutan JS, así
+// que acá se les devuelve un HTML mínimo con el título, la descripción y la
+// portada del proyecto. vercel.json solo manda acá a esos user-agents: las
+// personas reciben la SPA normal.
 
 const API_URL = process.env.VITE_API_URL
+const DEFAULT_DESCRIPTION = 'Renová tu propiedad al mejor valor o invertí en proyectos de flipping inmobiliario con FiFlip.'
 
 function escapeHtml(value) {
   return String(value)
@@ -21,54 +23,52 @@ function truncate(text, max) {
 async function fetchProject(id) {
   if (!API_URL || !/^\d+$/.test(id)) return null
   try {
-    const res = await fetch(`${API_URL}/api/projects/${id}`, { signal: AbortSignal.timeout(3000) })
+    const res = await fetch(`${API_URL}/api/projects/${id}`, { signal: AbortSignal.timeout(4000) })
     return res.ok ? await res.json() : null
   } catch {
     return null
   }
 }
 
-export function injectProjectMeta(html, project, pageUrl) {
-  const title = `${project.title} | FiFlip`
-  const description = project.description ? truncate(project.description, 200) : null
-  const image = project.coverImageUrl || project.afterImageUrls?.[0] || project.beforeImageUrls?.[0]
+export function renderPreview(project, pageUrl) {
+  const title = project ? `${project.title} | FiFlip` : 'FiFlip'
+  const description = project?.description ? truncate(project.description, 200) : DEFAULT_DESCRIPTION
+  const image = project && (project.coverImageUrl || project.afterImageUrls?.[0] || project.beforeImageUrls?.[0])
 
-  const tags = [
+  const meta = [
     ['og:type', 'article'],
     ['og:site_name', 'FiFlip'],
     ['og:title', title],
+    ['og:description', description],
     ['og:url', pageUrl],
-    description && ['og:description', description],
     image && ['og:image', image],
   ]
     .filter(Boolean)
     .map(([property, content]) => `<meta property="${property}" content="${escapeHtml(content)}" />`)
-  tags.push(`<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />`)
 
-  let out = html
-    .replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`)
-    // Las og:* genéricas de index.html se reemplazan por las del proyecto.
-    .replace(/\s*<meta property="og:[^"]*" content="[^"]*" \/>/g, '')
-  if (description) {
-    out = out.replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${escapeHtml(description)}" />`)
-  }
-  return out.replace('</head>', `    ${tags.join('\n    ')}\n  </head>`)
+  return `<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${escapeHtml(title)}</title>
+    <meta name="description" content="${escapeHtml(description)}" />
+    ${meta.join('\n    ')}
+    <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
+  </head>
+  <body>
+    <a href="${escapeHtml(pageUrl)}">${escapeHtml(title)}</a>
+  </body>
+</html>
+`
 }
 
 export default async function handler(req, res) {
   const id = String(req.query.id ?? '')
   const host = req.headers['x-forwarded-host'] || req.headers.host
   const proto = req.headers['x-forwarded-proto'] || 'https'
-  const origin = `${proto}://${host}`
-
-  const [htmlRes, project] = await Promise.all([fetch(`${origin}/index.html`), fetchProject(id)])
-  const html = await htmlRes.text()
+  const project = await fetchProject(id)
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  if (!project) {
-    res.setHeader('Cache-Control', 'no-store')
-    return res.status(200).send(html)
-  }
-  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400')
-  res.status(200).send(injectProjectMeta(html, project, `${origin}/proyecto/${id}`))
+  res.setHeader('Cache-Control', project ? 'public, s-maxage=300, stale-while-revalidate=86400' : 'no-store')
+  res.status(200).send(renderPreview(project, `${proto}://${host}/proyecto/${id}`))
 }
