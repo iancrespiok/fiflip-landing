@@ -20,6 +20,11 @@ export default function ProjectDetailPage({ id }) {
       .catch(() => setNotFound(true))
   }, [id])
 
+  useEffect(() => {
+    if (project) document.title = `${project.title} | FiFlip`
+    else if (notFound) document.title = 'Proyecto no encontrado | FiFlip'
+  }, [project, notFound])
+
   if (notFound) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
