@@ -44,16 +44,20 @@ export default function Hero() {
       </div>
 
       <div className="wrap hero-split">
-        <div className="hero-tile">
+        <a href="#renovacion" className="hero-tile">
           <span className="hero-tile-num">01</span>
-          <h3>Renovación</h3>
+          <h3>
+            Renovación <span className="hero-tile-arrow" aria-hidden="true">→</span>
+          </h3>
           <p>Solicitá, mandá fotos y medidas. Presupuesto en 24hs.</p>
-        </div>
-        <div className="hero-tile hero-tile-alt">
+        </a>
+        <a href="#inversion" className="hero-tile hero-tile-alt">
           <span className="hero-tile-num">02</span>
-          <h3>Inversión</h3>
+          <h3>
+            Inversión <span className="hero-tile-arrow" aria-hidden="true">→</span>
+          </h3>
           <p>Sumate a proyectos de flipping con retorno proyectado.</p>
-        </div>
+        </a>
       </div>
 
       <style>{`
@@ -64,10 +68,23 @@ export default function Hero() {
           border-top: 2px solid var(--white);
         }
         .hero-tile {
+          display: block;
           padding: 40px 24px 46px;
           border-right: 2px solid var(--white);
           min-width: 0;
+          text-decoration: none;
+          transition: background 0.2s ease, color 0.2s ease;
         }
+        .hero-tile:hover {
+          background: var(--white);
+          color: var(--black);
+        }
+        .hero-tile:hover p { color: var(--gray-700); }
+        .hero-tile-arrow {
+          display: inline-block;
+          transition: transform 0.2s ease;
+        }
+        .hero-tile:hover .hero-tile-arrow { transform: translateX(8px); }
         .hero-tile-alt { border-right: none; }
         .hero-tile-num {
           font-family: 'Archivo Black', sans-serif;
@@ -84,6 +101,7 @@ export default function Hero() {
           color: #c9c9c9;
           max-width: 340px;
           line-height: 1.5;
+          transition: color 0.2s ease;
         }
         @media (max-width: 720px) {
           .hero-split { grid-template-columns: 1fr; }
