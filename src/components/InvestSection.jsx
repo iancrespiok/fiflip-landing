@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
+import { navigate } from '../router.js'
 
 const initialForm = { nombre: '', email: '', telefono: '', monto: '', mensaje: '' }
 const API_URL = import.meta.env.VITE_API_URL
+
+const STEPS = [
+  { n: '01', title: 'Te contactamos', text: 'Un asesor te comparte los proyectos disponibles y sus números.' },
+  { n: '02', title: 'Elegís un proyecto', text: 'Cada proyecto tiene su estado de obra y su retorno proyectado.' },
+  { n: '03', title: 'Seguís la obra', text: 'Te mantenemos al tanto del avance, de la compra a la venta.' },
+]
 
 const STATUS_LABEL = {
   EN_OBRA: 'En obra',
@@ -69,22 +76,50 @@ export default function InvestSection() {
         {projects.length > 0 && (
           <div id="oportunidades" className="invest-projects">
             {projects.map((p) => (
-              <div className="invest-card" key={p.id}>
-                <div className="invest-card-top">
-                  <span>{STATUS_LABEL[p.status] || 'FiFlip'}</span>
-                </div>
-                <h3>{p.title}</h3>
-                <p>{p.description}</p>
-                {p.tea != null && (
-                  <span className="invest-roi">
-                    +{p.tea}% TEA {p.teaProjected ? 'est.' : 'real'}
-                  </span>
+              <a
+                className="invest-card"
+                key={p.id}
+                href={`/proyecto/${p.id}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate(`/proyecto/${p.id}`)
+                }}
+              >
+                {p.coverImageUrl && (
+                  <div className="invest-card-img">
+                    <img src={p.coverImageUrl} alt="" loading="lazy" decoding="async" />
+                    <span className="invest-status">{STATUS_LABEL[p.status] || 'FiFlip'}</span>
+                  </div>
                 )}
-              </div>
+                <div className="invest-card-body">
+                  {!p.coverImageUrl && <span className="invest-card-top">{STATUS_LABEL[p.status] || 'FiFlip'}</span>}
+                  <h3>{p.title}</h3>
+                  <p>{p.description}</p>
+                  {p.tea != null && (
+                    <span className="invest-roi">
+                      <span className="invest-roi-num">+{p.tea}%</span>
+                      <span>TEA {p.teaProjected ? 'estimada' : 'real'}</span>
+                    </span>
+                  )}
+                </div>
+              </a>
             ))}
           </div>
         )}
 
+        <div className="invest-bottom">
+        <div className="invest-steps">
+          <h3 style={{ fontSize: '1.4rem' }}>Cómo funciona</h3>
+          {STEPS.map((step) => (
+            <div className="invest-step" key={step.n}>
+              <span className="invest-step-num">{step.n}</span>
+              <div>
+                <h4>{step.title}</h4>
+                <p>{step.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
         <div className="invest-form-wrap">
           {sent ? (
             <div>
@@ -111,6 +146,7 @@ export default function InvestSection() {
                 <label htmlFor="inv-nombre">Nombre</label>
                 <input id="inv-nombre" required value={form.nombre} onChange={update('nombre')} placeholder="Tu nombre" />
               </div>
+              <div className="field-row">
               <div className="field">
                 <label htmlFor="inv-email">Email</label>
                 <input
@@ -133,6 +169,7 @@ export default function InvestSection() {
                   placeholder="Ej: 11 5555-5555"
                 />
               </div>
+              </div>
               <div className="field">
                 <label htmlFor="monto">Monto aproximado a invertir</label>
                 <input id="monto" value={form.monto} onChange={update('monto')} placeholder="Ej: USD 20.000" />
@@ -147,12 +184,17 @@ export default function InvestSection() {
                   placeholder="Contanos qué tipo de proyecto te interesa"
                 />
               </div>
-              {error && <p style={{ color: '#ff8a7a', fontSize: '0.85rem' }}>{error}</p>}
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
+                </p>
+              )}
               <button type="submit" className="btn btn-white" style={{ marginTop: 8 }} disabled={sending}>
                 {sending ? 'Enviando…' : 'Quiero que me contacten →'}
               </button>
             </form>
           )}
+        </div>
         </div>
       </div>
 
@@ -167,44 +209,116 @@ export default function InvestSection() {
         }
         .invest-card {
           background: var(--black);
-          padding: 28px;
           min-width: 0;
+          display: flex;
+          flex-direction: column;
+          text-decoration: none;
+          color: inherit;
+          transition: background 0.2s ease;
+        }
+        .invest-card:hover { background: var(--gray-900); }
+        .invest-card-img {
+          position: relative;
+          aspect-ratio: 16 / 10;
+          overflow: hidden;
+          border-bottom: 2px solid var(--white);
+        }
+        .invest-card-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.4s ease;
+        }
+        .invest-card:hover .invest-card-img img { transform: scale(1.04); }
+        .invest-status {
+          position: absolute;
+          top: 14px;
+          left: 14px;
+          padding: 6px 10px;
+          background: var(--white);
+          color: var(--black);
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .invest-card-body {
+          padding: 24px 28px 28px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
         .invest-card-top {
-          display: flex;
-          justify-content: space-between;
           font-size: 0.75rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: #8a8a8a;
-        }
-        .invest-status {
-          color: var(--white);
+          margin-bottom: 16px;
         }
         .invest-card h3 {
-          margin-top: 16px;
           font-size: 1.3rem;
         }
         .invest-card p {
           margin-top: 10px;
           color: #c9c9c9;
           line-height: 1.5;
-          min-height: 66px;
         }
         .invest-roi {
-          display: inline-block;
-          margin-top: 14px;
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          margin-top: auto;
+          padding-top: 18px;
           font-weight: 700;
-          font-size: 0.85rem;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: #c9c9c9;
+        }
+        .invest-roi-num {
+          font-family: 'Archivo Black', sans-serif;
+          font-size: 2rem;
+          letter-spacing: -0.02em;
+          color: var(--white);
+        }
+        .invest-bottom {
+          margin-top: 70px;
+          display: grid;
+          grid-template-columns: 0.85fr 1.15fr;
+          gap: 60px;
+          align-items: start;
+        }
+        .invest-steps {
+          display: flex;
+          flex-direction: column;
+          gap: 26px;
+          min-width: 0;
+        }
+        .invest-step {
+          display: flex;
+          gap: 20px;
+          padding-top: 22px;
           border-top: 2px solid var(--white);
-          padding-top: 12px;
-          width: 100%;
+        }
+        .invest-step-num {
+          font-family: 'Archivo Black', sans-serif;
+          font-size: 0.8rem;
+          color: #8a8a8a;
+          letter-spacing: 0.1em;
+          padding-top: 4px;
+        }
+        .invest-step h4 {
+          font-size: 1.1rem;
+        }
+        .invest-step p {
+          margin-top: 6px;
+          color: #c9c9c9;
+          line-height: 1.5;
         }
         .invest-form-wrap {
-          margin-top: 70px;
           border: 2px solid var(--white);
           padding: 40px;
-          max-width: 560px;
+          min-width: 0;
         }
         .invest-form {
           display: flex;
@@ -229,6 +343,7 @@ export default function InvestSection() {
         }
         @media (max-width: 900px) {
           .invest-projects { grid-template-columns: 1fr; }
+          .invest-bottom { grid-template-columns: 1fr; gap: 44px; }
         }
         @media (max-width: 620px) {
           .invest-form-wrap { padding: 26px; }
