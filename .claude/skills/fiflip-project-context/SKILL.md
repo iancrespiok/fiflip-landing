@@ -98,6 +98,15 @@ tabs) and `ProjectDetailPage.jsx` (own page per project, black-background
 `InvestSection.jsx` also pulls the 3 most recent `FLIP` projects as
 investment opportunity cards — same `Project` data, different view.
 
+Link previews for shared project links: `vercel.json` routes
+`/proyecto/:id` to the Vercel function `api/proyecto.js` **only for
+link-preview bot user-agents** (WhatsApp, facebookexternalhit, Telegram,
+etc.), which answers a minimal HTML with the project's `og:*` tags read
+from the backend (`VITE_API_URL` at runtime). People get the plain SPA,
+whose tab title `ProjectDetailPage` sets client-side. The function must
+not fetch the site's own `index.html` — preview deploys sit behind
+Vercel's SSO protection and would return the login page.
+
 ## Budget calculator (`/presupuesto`)
 
 Multi-step wizard (`BudgetCalculatorPage.jsx`): room count → per room
