@@ -18,6 +18,13 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
+  // El título de cada proyecto lo pone ProjectDetailPage cuando termina de cargarlo.
+  useEffect(() => {
+    if (pathname.startsWith('/admin')) document.title = 'Admin | FiFlip'
+    else if (pathname.startsWith('/presupuesto')) document.title = 'Presupuesto | FiFlip'
+    else if (!pathname.startsWith('/proyecto/')) document.title = 'FiFlip'
+  }, [pathname])
+
   if (pathname.startsWith('/admin')) {
     return <AdminApp />
   }
